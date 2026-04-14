@@ -1,5 +1,5 @@
 <template>
-  <div class="profile-container">
+  <div class="tool-container profile-container">
     <div class="page-header">
       <h2>个人设置</h2>
       <p class="subtitle">管理您的账号信息和安全设置</p>

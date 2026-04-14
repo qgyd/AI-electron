@@ -40,7 +40,12 @@ const api = {
     showSaveDialog: (options: any) => ipcRenderer.invoke('file:showSaveDialog', options),
     saveFile: (filePath: string, base64Data: string) =>
       ipcRenderer.invoke('file:saveFile', filePath, base64Data),
-    joinPath: (...args: string[]) => ipcRenderer.invoke('path:join', ...args)
+    joinPath: (...args: string[]) => ipcRenderer.invoke('path:join', ...args),
+    upload: (options: any) => ipcRenderer.invoke('file:upload', options),
+    onUploadProgress: (callback: (progress: any) => void) => {
+      ipcRenderer.removeAllListeners('file:upload-progress')
+      ipcRenderer.on('file:upload-progress', (_event, progress) => callback(progress))
+    }
   }
 }
 

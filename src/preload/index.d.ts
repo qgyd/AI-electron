@@ -27,6 +27,12 @@ declare global {
         showSaveDialog: (options: any) => Promise<string>
         saveFile: (filePath: string, base64Data: string) => Promise<boolean>
         joinPath: (...args: string[]) => Promise<string>
+        upload: (options: {
+          filePath: string
+          bucketType: number
+          fileType?: string
+        }) => Promise<{ success: boolean; data: any }>
+        onUploadProgress: (callback: (progress: { percent: number }) => void) => void
       }
     }
   }

@@ -44,6 +44,15 @@ const routes = [
         }
       },
       {
+        path: 'file-upload',
+        name: 'FileUpload',
+        component: () => import('@/views/FileUpload/index.vue'),
+        meta: {
+          title: '云端文件上传',
+          icon: 'UploadFilled'
+        }
+      },
+      {
         path: 'audio-convert',
         name: 'AudioConvert',
         component: () => import('@/views/AudioConvert/index.vue'),

@@ -28,6 +28,9 @@
         <el-menu-item index="/image-convert">
           <template #title>图片格式转换</template>
         </el-menu-item>
+        <el-menu-item index="/file-upload">
+          <template #title>云端文件上传</template>
+        </el-menu-item>
         <el-menu-item index="/audio-convert">
           <template #title>音频转换裁剪</template>
         </el-menu-item>
@@ -53,6 +56,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSettingsStore } from '@/store/settings'
+import { Connection, DocumentCopy, Edit, Setting } from '@element-plus/icons-vue'
 
 // 接收父组件传入的 isCollapse 状态
 defineProps<{

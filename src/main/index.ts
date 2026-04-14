@@ -1,15 +1,11 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import fs from 'fs'
 import icon from '../../resources/icon.png?asset'
-import log, { getLogPath, openLogFolder, setLogPath } from './logger'
-import { setupMediaIPC } from './media'
+import log from './logger'
+import { setupAllAPIs } from './api'
 
 log.info('Starting application...')
-
-// 这里先不要直接引入 db，因为在 app.whenReady 之前调用 app.getPath 可能会报错
-let dbOperations: any
 
 function createWindow(): void {
   // Create the browser window.
@@ -57,76 +53,14 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => log.info('pong'))
-
-  ipcMain.handle('log:getPath', () => getLogPath())
-  ipcMain.handle('log:openFolder', () => openLogFolder())
-  ipcMain.handle('log:changePath', async () => {
-    const { canceled, filePaths } = await dialog.showOpenDialog({
-      title: '选择日志存储目录',
-      properties: ['openDirectory', 'createDirectory']
-    })
-
-    if (!canceled && filePaths.length > 0) {
-      return setLogPath(filePaths[0])
-    }
-    return getLogPath()
-  })
-
-  // File operations
-  ipcMain.handle('file:selectFolder', async () => {
-    const { canceled, filePaths } = await dialog.showOpenDialog({
-      title: '选择文件夹',
-      properties: ['openDirectory', 'createDirectory']
-    })
-    if (!canceled && filePaths.length > 0) {
-      return filePaths[0]
-    }
-    return ''
-  })
-
-  ipcMain.handle('file:showSaveDialog', async (_, options) => {
-    const { canceled, filePath } = await dialog.showSaveDialog(options)
-    if (!canceled) {
-      return filePath
-    }
-    return ''
-  })
-
-  ipcMain.handle('file:saveFile', async (_, filePath, base64Data) => {
-    try {
-      const data = base64Data.replace(/^data:image\/\w+;base64,/, '')
-      const buffer = Buffer.from(data, 'base64')
-      fs.writeFileSync(filePath, buffer)
-      return true
-    } catch (e) {
-      log.error('Save file error:', e)
-      return false
-    }
-  })
-
-  ipcMain.handle('path:join', (_, ...args) => join(...args))
-
-  // 必须在 app.whenReady 之后再 require db，否则 userData 目录可能还没准备好
-  import('./db')
-    .then((module) => {
-      dbOperations = module.dbOperations
-
-      // 注册 SQLite 数据库操作相关的 IPC 监听
-      ipcMain.handle('db:addNote', async (_, note) => await dbOperations.addNote(note))
-      ipcMain.handle('db:updateNote', async (_, note) => await dbOperations.updateNote(note))
-      ipcMain.handle('db:getNotes', async () => await dbOperations.getNotes())
-      ipcMain.handle('db:getNoteById', async (_, id) => await dbOperations.getNoteById(id))
-      ipcMain.handle('db:deleteNote', async (_, id) => await dbOperations.deleteNote(id))
-
-      setupMediaIPC()
-
+  // 统一注册所有的 IPC 接口
+  setupAllAPIs()
+    .then(() => {
       createWindow()
     })
     .catch((err) => {
-      log.error('Failed to load db module:', err)
-      createWindow() // 就算 db 挂了，也把窗口弹出来
+      log.error('API Setup Error:', err)
+      createWindow() // 即使 API 注册发生异常，也要尝试打开主窗口
     })
 
   app.on('activate', function () {

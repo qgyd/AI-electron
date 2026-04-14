@@ -283,7 +283,7 @@ const handleUpdatePassword = async () => {
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/tool-layout.scss';
+@use '@/assets/tool-layout.scss';
 
 .profile-container {
   max-width: 600px;

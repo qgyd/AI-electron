@@ -37,6 +37,8 @@ MyTool 项目采用标准的 Electron 应用程序结构，主要分为三个核
 graph TB
 subgraph "主进程 (Main Process)"
 A[src/main/index.ts<br/>应用入口]
+G[src/main/api/index.ts<br/>统一API注册]
+H[src/main/api/ipc.ts<br/>IPC日志拦截器]
 B[src/main/db.ts<br/>数据库操作]
 C[src/main/logger.ts<br/>日志管理]
 end
@@ -47,11 +49,13 @@ subgraph "渲染进程 (Renderer)"
 E[src/renderer/src/views/Notepad/index.vue<br/>记事本功能]
 F[src/renderer/src/views/Settings/index.vue<br/>设置界面]
 end
-A --> D
+A --> G
+G --> H
+H --> D
 D --> E
 D --> F
-A --> B
-A --> C
+G --> B
+G --> C
 ```
 
 **图表来源**
@@ -68,10 +72,12 @@ A --> C
 
 ### 主进程 IPC 处理器
 
-主进程通过 `ipcMain.handle` 方法注册了两个主要的 IPC 通道：
+在应用入口通过 `setupAllAPIs()` (位于 `src/main/api/index.ts`) 集中注册所有的 IPC 接口。
+主进程通过封装好的 `ipcHandleWithLog` (位于 `src/main/api/ipc.ts`) 方法注册了以下主要模块通道，它在底层封装了 `ipcMain.handle` 并在执行前后自动输出规范化的请求日志（如耗时、参数拦截、错误堆栈抛出）：
 
 1. **数据库操作通道** (`db:*`)
 2. **日志管理通道** (`log:*`)
+3. **文件与多媒体操作** (`file:*`, `media:*`)
 
 ### 预加载脚本 API 暴露
 

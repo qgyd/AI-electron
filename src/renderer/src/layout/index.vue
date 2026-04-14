@@ -31,14 +31,18 @@
             <span class="el-dropdown-link user-info">
               <el-avatar
                 size="small"
-                src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png"
+                :src="
+                  userStore.avatar ||
+                  'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+                "
               />
-              <span class="username">Admin</span>
+              <span class="username">{{ userStore.username }}</span>
               <el-icon class="el-icon--right"><arrow-down /></el-icon>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                <el-dropdown-item command="profile">个人设置</el-dropdown-item>
+                <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -66,10 +70,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import Sidebar from './components/Sidebar.vue'
 import { useSettingsStore } from '@/store/settings'
+import { useUserStore } from '@/store/user'
 
 const route = useRoute()
 const router = useRouter()
 const settingsStore = useSettingsStore()
+const userStore = useUserStore()
 
 const isCollapse = ref(false)
 
@@ -84,12 +90,15 @@ const toggleDarkMode = (): void => {
 }
 
 const handleCommand = (command: string): void => {
-  if (command === 'logout') {
+  if (command === 'profile') {
+    router.push('/profile')
+  } else if (command === 'logout') {
     ElMessageBox.confirm('确认退出系统吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     }).then(() => {
+      userStore.logout()
       ElMessage.success('已退出登录')
       router.push('/login')
     })

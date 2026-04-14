@@ -75,6 +75,16 @@ export async function setupAllAPIs() {
     ipcHandleWithLog('db:getNotes', async () => await dbOperations.getNotes())
     ipcHandleWithLog('db:getNoteById', async (_, id) => await dbOperations.getNoteById(id))
     ipcHandleWithLog('db:deleteNote', async (_, id) => await dbOperations.deleteNote(id))
+
+    ipcHandleWithLog('db:login', async (_, params) => await dbOperations.login(params))
+    ipcHandleWithLog(
+      'db:updateUserInfo',
+      async (_, params) => await dbOperations.updateUserInfo(params)
+    )
+    ipcHandleWithLog(
+      'db:updatePassword',
+      async (_, params) => await dbOperations.updatePassword(params)
+    )
   } catch (err) {
     log.error('Failed to load db module:', err)
   }

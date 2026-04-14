@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import { useUserStore } from '@/store/user'
 
 const routes = [
   {
@@ -87,6 +88,15 @@ const routes = [
           title: '系统设置',
           icon: 'Setting'
         }
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('@/views/Profile/index.vue'),
+        meta: {
+          title: '个人设置',
+          hidden: true
+        }
       }
     ]
   }
@@ -102,13 +112,15 @@ router.beforeEach((to, _from, next): void => {
   // 设置页面标题
   document.title = `${to.meta.title || 'MyTool'}`
 
-  // 这里可以放鉴权逻辑，比如检查 token
-  // const token = localStorage.getItem('token')
-  // if (!token && to.path !== '/login') {
-  //   next('/login')
-  // } else {
-  next()
-  // }
+  const userStore = useUserStore()
+
+  if (!userStore.id && to.path !== '/login') {
+    next('/login')
+  } else if (userStore.id && to.path === '/login') {
+    next('/')
+  } else {
+    next()
+  }
 })
 
 export default router

@@ -10,6 +10,9 @@ declare global {
         getNotes: () => Promise<any[]>
         getNoteById: (id: number) => Promise<any>
         deleteNote: (id: number) => Promise<boolean>
+        login: (params: any) => Promise<{ success: boolean; user?: any; message?: string }>
+        updateUserInfo: (params: any) => Promise<{ success: boolean; message?: string }>
+        updatePassword: (params: any) => Promise<{ success: boolean; message?: string }>
       }
       log: {
         getPath: () => Promise<string>

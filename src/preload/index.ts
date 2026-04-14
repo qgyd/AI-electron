@@ -9,7 +9,11 @@ const api = {
       ipcRenderer.invoke('db:updateNote', note),
     getNotes: () => ipcRenderer.invoke('db:getNotes'),
     getNoteById: (id: number) => ipcRenderer.invoke('db:getNoteById', id),
-    deleteNote: (id: number) => ipcRenderer.invoke('db:deleteNote', id)
+    deleteNote: (id: number) => ipcRenderer.invoke('db:deleteNote', id),
+
+    login: (params: any) => ipcRenderer.invoke('db:login', params),
+    updateUserInfo: (params: any) => ipcRenderer.invoke('db:updateUserInfo', params),
+    updatePassword: (params: any) => ipcRenderer.invoke('db:updatePassword', params)
   },
   log: {
     getPath: () => ipcRenderer.invoke('log:getPath'),

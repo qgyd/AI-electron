@@ -38,8 +38,10 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import { useUserStore } from '@/store/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 const loginFormRef = ref<FormInstance>()
 const loading = ref(false)
 
@@ -55,15 +57,26 @@ const rules = reactive<FormRules>({
 
 const handleLogin = async () => {
   if (!loginFormRef.value) return
-  await loginFormRef.value.validate((valid) => {
+  await loginFormRef.value.validate(async (valid) => {
     if (valid) {
       loading.value = true
-      // 模拟登录请求
-      setTimeout(() => {
+      try {
+        const res = await window.api.db.login({
+          username: loginForm.username,
+          password: loginForm.password
+        })
+        if (res.success && res.user) {
+          userStore.setUser(res.user)
+          ElMessage.success('登录成功')
+          router.push('/')
+        } else {
+          ElMessage.error(res.message || '登录失败')
+        }
+      } catch (err: any) {
+        ElMessage.error(err.message || '登录异常')
+      } finally {
         loading.value = false
-        ElMessage.success('登录成功')
-        router.push('/')
-      }, 1000)
+      }
     }
   })
 }

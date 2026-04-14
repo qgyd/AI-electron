@@ -1,0 +1,105 @@
+import { createRouter, createWebHashHistory } from 'vue-router'
+
+const routes = [
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login/index.vue'),
+    meta: {
+      title: '登录系统',
+      hidden: true
+    }
+  },
+  {
+    path: '/',
+    name: 'Layout',
+    component: () => import('@/layout/index.vue'),
+    redirect: '/api-test', // 访问首页时重定向到接口测试
+    children: [
+      {
+        path: 'api-test',
+        name: 'ApiTest',
+        component: () => import('@/views/ApiTest/index.vue'),
+        meta: {
+          title: '接口测试',
+          icon: 'Connection'
+        }
+      },
+      {
+        path: 'format-convert',
+        name: 'FormatConvert',
+        component: () => import('@/views/FormatConvert/index.vue'),
+        meta: {
+          title: 'JSON格式化',
+          icon: 'DocumentCopy'
+        }
+      },
+      {
+        path: 'image-convert',
+        name: 'ImageConvert',
+        component: () => import('@/views/ImageConvert/index.vue'),
+        meta: {
+          title: '图片格式转换',
+          icon: 'Picture'
+        }
+      },
+      {
+        path: 'audio-convert',
+        name: 'AudioConvert',
+        component: () => import('@/views/AudioConvert/index.vue'),
+        meta: {
+          title: '音频转换裁剪',
+          icon: 'Microphone'
+        }
+      },
+      {
+        path: 'video-convert',
+        name: 'VideoConvert',
+        component: () => import('@/views/VideoConvert/index.vue'),
+        meta: {
+          title: '视频转换裁剪',
+          icon: 'VideoCamera'
+        }
+      },
+      {
+        path: 'notepad',
+        name: 'Notepad',
+        component: () => import('@/views/Notepad/index.vue'),
+        meta: {
+          title: '本地记事本',
+          icon: 'Edit'
+        }
+      },
+      {
+        path: 'settings',
+        name: 'Settings',
+        component: () => import('@/views/Settings/index.vue'),
+        meta: {
+          title: '系统设置',
+          icon: 'Setting'
+        }
+      }
+    ]
+  }
+]
+
+const router = createRouter({
+  history: createWebHashHistory(),
+  routes
+})
+
+// 简单的路由守卫（路由拦截拦截）
+router.beforeEach((to, _from, next): void => {
+  // 设置页面标题
+  document.title = `${to.meta.title || 'MyTool'}`
+
+  // 这里可以放鉴权逻辑，比如检查 token
+  // const token = localStorage.getItem('token')
+  // if (!token && to.path !== '/login') {
+  //   next('/login')
+  // } else {
+  next()
+  // }
+})
+
+export default router

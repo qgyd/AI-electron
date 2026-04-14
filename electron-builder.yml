@@ -1,0 +1,58 @@
+appId: toolapi.mytool
+productName: 工具助手
+directories:
+  buildResources: build
+  output: dist/${platform}
+asar: true
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+extraResources:
+  - from: build/
+    to: build/
+asarUnpack:
+  - resources/**
+  - node_modules/@ffmpeg-installer/**/*
+  - node_modules/@ffprobe-installer/**/*
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  executableName: 工具助手
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+mac:
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    - NSCameraUsageDescription: Application requests access to the device's camera.
+    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  notarize: false
+dmg:
+  artifactName: ${name}-${version}.${ext}
+linux:
+  target:
+    - AppImage
+    - snap
+    - deb
+  maintainer: electronjs.org
+  category: Utility
+appImage:
+  artifactName: ${name}-${version}.${ext}
+npmRebuild: false
+nodeGypRebuild: false
+publish:
+  provider: generic
+  url: https://dl.yxuer.com/styk/dist/${platform}
+  channel: latest
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/

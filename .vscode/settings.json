@@ -1,0 +1,32 @@
+{
+  // 对 TypeScript 文件，默认用 Prettier 格式化
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  // 对 JavaScript 文件，默认用 Prettier 格式化
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  // 对 JSON 文件，默认用 Prettier 格式化
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  // 对 Vue 文件，由于 Volar 现在拆分了格式化功能，建议也使用 Prettier 格式化
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  // 可选：开启保存时自动格式化（对所有文件生效）
+  "editor.formatOnSave": true,
+  // 使用 Prettier 插件，开启 ESLint 保存自动修复作为补充
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  // 取消强依赖 requireConfig，防止因为找不到配置导致不格式化
+  "prettier.requireConfig": false,
+  "cSpell.words": ["Idssssgournew"],
+  "kiroAgent.configureMCP": "Disabled",
+  "files.eol": "\n"
+}

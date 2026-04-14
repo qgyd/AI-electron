@@ -465,6 +465,8 @@ const handleConvert = async (e: Event) => {
     display: flex;
     align-items: center;
     gap: 16px;
+    min-width: 200px;
+    flex: 1;
 
     .el-slider {
       flex: 1;

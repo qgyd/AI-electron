@@ -191,5 +191,5 @@ const handleConvert = async (e: Event) => {
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/tool-layout.scss';
+@use '@/assets/tool-layout.scss';
 </style>

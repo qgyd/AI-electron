@@ -108,98 +108,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { VideoCamera, Switch, RefreshRight } from '@element-plus/icons-vue'
-import type { UploadFile, UploadInstance } from 'element-plus'
-import { useSettingsStore } from '@/store/settings'
+import { useFormat } from '@/hooks/useFormat'
+import { useFileSave } from '@/hooks/useFileSave'
+import { useMediaConvert } from '@/hooks/useMediaConvert'
 
-const settingsStore = useSettingsStore()
-const uploadRef = ref<UploadInstance>()
-const sourceFile = ref<any>(null)
-const sourceFilePath = ref<string>('')
-const previewUrl = ref<string>('')
-const mediaInfo = ref<any>(null)
+const { formatSize, formatDuration } = useFormat()
+const { getOutputPath } = useFileSave()
+
+const {
+  uploadRef,
+  sourceFile,
+  sourceFilePath,
+  previewUrl,
+  mediaInfo,
+  isConverting,
+  progress,
+  clearFile,
+  handleFileChange
+} = useMediaConvert()
+
 const targetFormat = ref<string>('mp4')
 const startTime = ref<string>('')
 const duration = ref<string>('')
-
-const isConverting = ref<boolean>(false)
-const progress = ref<number>(0)
-
-const formatSize = (bytes: number) => {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
-
-const formatDuration = (seconds: number) => {
-  if (!seconds) return '未知'
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  const s = Math.floor(seconds % 60)
-  if (h > 0) return `${h}时${m}分${s}秒`
-  return `${m}分${s}秒`
-}
-
-onMounted(() => {
-  if (window.api && window.api.media) {
-    window.api.media.onProgress((prog: any) => {
-      if (prog && prog.percent) {
-        progress.value = Math.min(100, Math.max(0, prog.percent))
-      }
-    })
-  }
-})
-
-const clearFile = () => {
-  sourceFile.value = null
-  sourceFilePath.value = ''
-  mediaInfo.value = null
-  if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value)
-    previewUrl.value = ''
-  }
-  progress.value = 0
-  startTime.value = ''
-  duration.value = ''
-  if (uploadRef.value) {
-    uploadRef.value.clearFiles()
-  }
-}
-
-onUnmounted(() => {
-  if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value)
-  }
-})
-
-const handleFileChange = async (uploadFile: UploadFile) => {
-  if (uploadFile.raw) {
-    sourceFile.value = uploadFile.raw
-    previewUrl.value = URL.createObjectURL(uploadFile.raw)
-    mediaInfo.value = null
-    progress.value = 0
-    startTime.value = ''
-    duration.value = ''
-
-    if (window.api && window.api.media) {
-      sourceFilePath.value = window.api.media.getFilePath(uploadFile.raw)
-    } else {
-      sourceFilePath.value = (uploadFile.raw as any).path || ''
-    }
-
-    if (sourceFilePath.value && window.api && window.api.media) {
-      try {
-        mediaInfo.value = await window.api.media.getInfo(sourceFilePath.value)
-      } catch (err) {
-        console.error('获取媒体信息失败:', err)
-      }
-    }
-  }
-}
 
 const handleConvert = async (e: Event) => {
   e.preventDefault()
@@ -220,8 +153,6 @@ const handleConvert = async (e: Event) => {
   progress.value = 0
 
   try {
-    const isWindows = navigator.userAgent.toLowerCase().includes('windows')
-    const sep = isWindows ? '\\' : '/'
     const name =
       sourceFile.value.name.substring(0, sourceFile.value.name.lastIndexOf('.')) || 'video'
 
@@ -231,18 +162,10 @@ const handleConvert = async (e: Event) => {
     const timestamp = new Date().getTime()
     const newFileName = `${name}_converted_${timestamp}.${ext}`
 
-    let outputPath = ''
-    if (settingsStore.outputDir) {
-      outputPath = await window.api.file.joinPath(settingsStore.outputDir, newFileName)
-    } else {
-      outputPath = await window.api.file.showSaveDialog({
-        defaultPath: newFileName,
-        filters: [{ name: 'Video', extensions: [ext] }]
-      })
-      if (!outputPath) {
-        isConverting.value = false
-        return
-      }
+    const outputPath = await getOutputPath(newFileName, [{ name: 'Video', extensions: [ext] }])
+    if (!outputPath) {
+      isConverting.value = false
+      return
     }
 
     const result = await window.api.media.convert({
@@ -268,261 +191,5 @@ const handleConvert = async (e: Event) => {
 </script>
 
 <style scoped lang="scss">
-.tool-container {
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 20px 0;
-
-  .page-header {
-    margin-bottom: 24px;
-    text-align: center;
-
-    h2 {
-      margin: 0 0 8px 0;
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--el-text-color-primary);
-    }
-    .subtitle {
-      margin: 0;
-      font-size: 14px;
-      color: var(--el-text-color-secondary);
-    }
-  }
-
-  .content-card {
-    background: var(--el-bg-color);
-    border-radius: 16px;
-    padding: 32px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--el-border-color-light);
-  }
-
-  .single-uploader {
-    width: 100%;
-
-    :deep(.el-upload-dragger) {
-      width: 100%;
-      height: 220px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      border: 2px dashed var(--el-border-color);
-      border-radius: 12px;
-      background-color: var(--el-fill-color-blank);
-      transition: all 0.3s;
-      overflow: hidden;
-      padding: 0;
-
-      &:hover {
-        border-color: var(--el-color-primary);
-        background-color: var(--el-color-primary-light-9);
-
-        .file-mask {
-          opacity: 1;
-        }
-      }
-    }
-  }
-
-  .upload-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    .upload-icon {
-      font-size: 48px;
-      color: var(--el-text-color-placeholder);
-      margin-bottom: 16px;
-      transition: transform 0.3s;
-    }
-
-    .upload-text {
-      font-size: 14px;
-      color: var(--el-text-color-regular);
-      em {
-        color: var(--el-color-primary);
-        font-style: normal;
-      }
-    }
-  }
-
-  .single-uploader:hover .upload-icon {
-    transform: translateY(-5px);
-    color: var(--el-color-primary);
-  }
-
-  .media-player-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: var(--el-fill-color-light);
-    border-radius: 12px;
-    padding: 16px;
-    border: 1px solid var(--el-border-color-light);
-    animation: fadeIn 0.3s ease;
-
-    .player-wrapper {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      margin-bottom: 12px;
-      border-radius: 8px;
-      overflow: hidden;
-      background-color: #000;
-
-      .native-video-player {
-        width: 100%;
-        max-height: 320px;
-        outline: none;
-      }
-    }
-
-    .reselect-action {
-      display: flex;
-      justify-content: flex-end;
-      width: 100%;
-    }
-  }
-
-  .preview-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--el-fill-color-light);
-
-    &.media-preview {
-      .preview-icon {
-        font-size: 64px;
-        color: var(--el-color-primary);
-        opacity: 0.8;
-      }
-    }
-
-    .file-mask {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.3s;
-
-      .el-icon {
-        font-size: 32px;
-        margin-bottom: 8px;
-      }
-    }
-  }
-
-  .settings-panel {
-    margin-top: 24px;
-    animation: fadeIn 0.4s ease-out;
-
-    .file-info {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background-color: var(--el-fill-color-light);
-      border-radius: 8px;
-      margin-bottom: 24px;
-
-      .info-left {
-        display: flex;
-        align-items: center;
-        overflow: hidden;
-        margin-right: 16px;
-
-        .file-name {
-          font-weight: 500;
-          color: var(--el-text-color-primary);
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          margin-right: 12px;
-        }
-
-        .file-size {
-          font-size: 13px;
-          color: var(--el-text-color-secondary);
-          flex-shrink: 0;
-        }
-      }
-
-      .info-right {
-        flex-shrink: 0;
-        .file-duration {
-          font-size: 13px;
-          color: var(--el-text-color-secondary);
-          background: var(--el-fill-color-darker);
-          padding: 2px 8px;
-          border-radius: 12px;
-        }
-      }
-    }
-  }
-
-  .progress-section {
-    margin-bottom: 24px;
-
-    .progress-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      color: var(--el-text-color-regular);
-      margin-bottom: 8px;
-    }
-
-    :deep(.el-progress-bar__outer) {
-      border-radius: 4px;
-    }
-    :deep(.el-progress-bar__inner) {
-      border-radius: 4px;
-      transition: width 0.2s ease;
-    }
-  }
-
-  .action-bar {
-    margin-top: 16px;
-    display: flex;
-    justify-content: center;
-
-    .submit-btn {
-      width: 100%;
-      height: 48px;
-      font-size: 16px;
-      border-radius: 12px;
-      transition:
-        transform 0.2s,
-        box-shadow 0.2s;
-
-      &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px var(--el-color-primary-light-5);
-      }
-      &:active {
-        transform: translateY(0);
-      }
-    }
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+@import '@/assets/tool-layout.scss';
 </style>

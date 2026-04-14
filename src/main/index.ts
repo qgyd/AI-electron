@@ -17,7 +17,8 @@ function createWindow(): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      webSecurity: false // 关闭 Electron 的跨域和同源策略限制，允许自由加载外部网络资源
     }
   })
 

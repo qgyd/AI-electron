@@ -204,8 +204,10 @@ const handleAvatarChange = async (uploadFile: UploadFile) => {
     })
 
     if (res.success && res.data) {
-      const url = res.data.url || (typeof res.data === 'string' ? res.data : null)
+      let url = res.data.url || (typeof res.data === 'string' ? res.data : null)
       if (url) {
+        // 增加时间戳参数，防止浏览器缓存导致同一URL的头像不更新
+        url = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now()
         infoForm.avatar = url
         ElMessage.success('头像上传成功，请点击保存生效')
       } else {

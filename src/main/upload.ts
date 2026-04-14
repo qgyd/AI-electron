@@ -318,12 +318,20 @@ export function setupUploadIPC() {
           throw new Error('文件不存在: ' + filePath)
         }
 
+        let finalUrl = ''
+
         uploadToQiniuSDK(
           filePath,
           bucketType,
           fileType,
           (data) => {
-            resolve({ success: true, data })
+            if (data && data.lock === false) {
+              // 第一次回调，仅获取到预分配的 url，此时文件还未开始上传
+              if (data.url) finalUrl = data.url
+            } else {
+              // 第二次回调，上传真正完成 (lock === true)
+              resolve({ success: true, data: { ...data, url: finalUrl || data.url } })
+            }
           },
           (err) => {
             reject(new Error(err.error || '上传失败'))

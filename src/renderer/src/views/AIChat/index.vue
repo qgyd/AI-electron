@@ -235,7 +235,7 @@ const sendMessage = async () => {
 .chat-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100vh - 150px); /* 固定高度，100vh 减去顶部控制栏、Header和外层Padding */
   background-color: var(--el-bg-color);
   border-radius: 12px;
   border: 1px solid var(--el-border-color-light);

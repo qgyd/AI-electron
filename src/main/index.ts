@@ -14,6 +14,11 @@ function createWindow(): void {
     height: 670,
     show: false,
     autoHideMenuBar: true,
+    titleBarStyle: 'hiddenInset', // 隐藏原生标题栏，Mac 保留交通灯
+    titleBarOverlay: { // Windows/Linux 下保留原生控制按钮并自定义颜色
+      color: '#ffffff00', // 按钮区域背景透明
+      symbolColor: '#666666'
+    },
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

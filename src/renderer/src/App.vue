@@ -38,9 +38,30 @@ watch(
 </script>
 
 <template>
+  <div class="custom-titlebar"></div>
   <router-view></router-view>
 </template>
 
 <style>
-/* 这里可以放全局样式 */
+.custom-titlebar {
+  height: 38px;
+  width: 100%;
+  background-color: var(--el-bg-color);
+  -webkit-app-region: drag;
+  flex-shrink: 0;
+  z-index: 9999;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--el-border-color-light);
+}
+
+/* 调整全局根节点，防止出现滚动条 */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
 </style>

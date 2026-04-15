@@ -108,8 +108,9 @@ const handleCommand = (command: string): void => {
 
 <style scoped lang="scss">
 .layout-container {
-  height: 100vh;
+  flex: 1;
   width: 100vw;
+  overflow: hidden;
 
   .header {
     background-color: var(--el-bg-color);
@@ -201,7 +202,7 @@ const handleCommand = (command: string): void => {
     background-color: var(--el-bg-color-page);
     padding: 0;
     box-sizing: border-box;
-    height: calc(100vh - 64px); // 减去 header 高度
+    height: calc(100% - 64px); // 减去 header 高度
     overflow: hidden; // 隐藏原生滚动条
 
     :deep(.el-scrollbar__wrap) {

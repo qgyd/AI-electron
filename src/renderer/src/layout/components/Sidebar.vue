@@ -113,7 +113,7 @@ const activeMenu = computed(() => route.path)
     border-right: none;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 64px); // 减去 logo 的高度
+    height: calc(100% - 64px); // 减去 logo 的高度
     background-color: var(--el-bg-color);
 
     /* 修复 Element Plus 菜单折叠时的一些奇怪样式 */

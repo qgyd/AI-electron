@@ -67,23 +67,26 @@ export async function setupAllAPIs() {
   // 4. SQLite 数据库 API
   // 必须在 app.whenReady 之后再 require db，因此在此处动态引入
   try {
-    const module = await import('../db')
-    const dbOperations = module.dbOperations
+    const { noteService } = await import('../db/services/note')
+    const { userService } = await import('../db/services/user')
 
-    ipcHandleWithLog('db:addNote', async (_, note) => await dbOperations.addNote(note))
-    ipcHandleWithLog('db:updateNote', async (_, note) => await dbOperations.updateNote(note))
-    ipcHandleWithLog('db:getNotes', async () => await dbOperations.getNotes())
-    ipcHandleWithLog('db:getNoteById', async (_, id) => await dbOperations.getNoteById(id))
-    ipcHandleWithLog('db:deleteNote', async (_, id) => await dbOperations.deleteNote(id))
+    // 触发 DB 初始化（只要引入了 '../db/index'，就会执行 db 初始化）
+    await import('../db/index')
 
-    ipcHandleWithLog('db:login', async (_, params) => await dbOperations.login(params))
+    ipcHandleWithLog('db:addNote', async (_, note) => await noteService.addNote(note))
+    ipcHandleWithLog('db:updateNote', async (_, note) => await noteService.updateNote(note))
+    ipcHandleWithLog('db:getNotes', async () => await noteService.getNotes())
+    ipcHandleWithLog('db:getNoteById', async (_, id) => await noteService.getNoteById(id))
+    ipcHandleWithLog('db:deleteNote', async (_, id) => await noteService.deleteNote(id))
+
+    ipcHandleWithLog('db:login', async (_, params) => await userService.login(params))
     ipcHandleWithLog(
       'db:updateUserInfo',
-      async (_, params) => await dbOperations.updateUserInfo(params)
+      async (_, params) => await userService.updateUserInfo(params)
     )
     ipcHandleWithLog(
       'db:updatePassword',
-      async (_, params) => await dbOperations.updatePassword(params)
+      async (_, params) => await userService.updatePassword(params)
     )
   } catch (err) {
     log.error('Failed to load db module:', err)

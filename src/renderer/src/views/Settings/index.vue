@@ -41,6 +41,69 @@
 
         <el-divider border-style="dashed" />
 
+        <div class="section-title">AI 助手配置</div>
+
+        <el-form-item>
+          <template #label>
+            <div style="display: flex; flex-direction: column; line-height: 1.5">
+              <span>API Base URL</span>
+              <span
+                style="font-size: 12px; color: var(--el-text-color-secondary); font-weight: normal"
+                >兼容 OpenAI 格式</span
+              >
+            </div>
+          </template>
+          <el-input
+            v-model="settings.aiBaseUrl"
+            placeholder="例如: https://api.siliconflow.cn/v1"
+            class="w-full"
+          />
+        </el-form-item>
+
+        <el-divider border-style="dashed" />
+
+        <el-form-item>
+          <template #label>
+            <div style="display: flex; flex-direction: column; line-height: 1.5">
+              <span>API Key</span>
+              <span
+                style="font-size: 12px; color: var(--el-text-color-secondary); font-weight: normal"
+                >鉴权秘钥 (Bearer Token)</span
+              >
+            </div>
+          </template>
+          <el-input
+            v-model="settings.aiApiKey"
+            type="password"
+            show-password
+            placeholder="sk-..."
+            class="w-full"
+          />
+        </el-form-item>
+
+        <el-divider border-style="dashed" />
+
+        <el-form-item>
+          <template #label>
+            <div style="display: flex; flex-direction: column; line-height: 1.5">
+              <span>AI 模型 (Model)</span>
+              <span
+                style="font-size: 12px; color: var(--el-text-color-secondary); font-weight: normal"
+                >模型调用名称</span
+              >
+            </div>
+          </template>
+          <el-input
+            v-model="settings.aiModel"
+            placeholder="例如: Qwen/Qwen2.5-7B-Instruct"
+            class="w-full"
+          />
+        </el-form-item>
+
+        <el-divider border-style="dashed" />
+
+        <div class="section-title">系统与文件配置</div>
+
         <el-form-item label="系统日志位置">
           <div class="log-path-container">
             <el-input v-model="logPath" readonly class="w-full">
@@ -175,6 +238,13 @@ const handleReset = () => {
   }
 
   .settings-form {
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--el-color-primary);
+      margin: 24px 0 12px 0;
+    }
+
     .el-form-item {
       margin-bottom: 0;
       padding: 16px 0;

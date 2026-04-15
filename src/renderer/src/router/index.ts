@@ -81,6 +81,15 @@ const routes = [
         }
       },
       {
+        path: 'ai-chat',
+        name: 'AIChat',
+        component: () => import('@/views/AIChat/index.vue'),
+        meta: {
+          title: 'AI 智能助手',
+          icon: 'ChatDotSquare'
+        }
+      },
+      {
         path: 'settings',
         name: 'Settings',
         component: () => import('@/views/Settings/index.vue'),

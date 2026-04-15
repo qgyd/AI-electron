@@ -44,6 +44,11 @@
         <template #title>本地记事本</template>
       </el-menu-item>
 
+      <el-menu-item index="/ai-chat">
+        <el-icon><ChatDotSquare /></el-icon>
+        <template #title>AI 智能助手</template>
+      </el-menu-item>
+
       <el-menu-item index="/settings">
         <el-icon><Setting /></el-icon>
         <template #title>系统设置</template>
@@ -56,7 +61,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSettingsStore } from '@/store/settings'
-import { Connection, DocumentCopy, Edit, Setting } from '@element-plus/icons-vue'
+import { Connection, DocumentCopy, Edit, Setting, ChatDotSquare } from '@element-plus/icons-vue'
 
 // 接收父组件传入的 isCollapse 状态
 defineProps<{

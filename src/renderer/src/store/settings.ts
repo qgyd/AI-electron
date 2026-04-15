@@ -11,6 +11,11 @@ export const useSettingsStore = defineStore(
     const notify = ref(true)
     const outputDir = ref('')
 
+    // AI 设置
+    const aiBaseUrl = ref('https://api.siliconflow.cn/v1')
+    const aiApiKey = ref('')
+    const aiModel = ref('Qwen/Qwen2.5-7B-Instruct')
+
     const resetSettings = () => {
       sysName.value = 'My Tool'
       theme.value = '#1677ff'
@@ -18,6 +23,9 @@ export const useSettingsStore = defineStore(
       lockTime.value = '30'
       notify.value = true
       outputDir.value = ''
+      aiBaseUrl.value = 'https://api.siliconflow.cn/v1'
+      aiApiKey.value = ''
+      aiModel.value = 'Qwen/Qwen2.5-7B-Instruct'
     }
 
     return {
@@ -27,6 +35,9 @@ export const useSettingsStore = defineStore(
       lockTime,
       notify,
       outputDir,
+      aiBaseUrl,
+      aiApiKey,
+      aiModel,
       resetSettings
     }
   },

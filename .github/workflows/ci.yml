@@ -111,4 +111,3 @@ jobs:
           name: mytool-${{ needs.check_version.outputs.current_version }}-${{ runner.os }}
           path: dist/**
           if-no-files-found: error
-

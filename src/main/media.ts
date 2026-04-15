@@ -2,7 +2,6 @@ import ffmpeg from 'fluent-ffmpeg'
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg'
 import ffprobeInstaller from '@ffprobe-installer/ffprobe'
 import log from './logger'
-import { join, dirname } from 'path'
 import { ipcHandleWithLog } from './api/ipc'
 
 // 处理生产环境下的 asar 路径问题
@@ -56,7 +55,7 @@ export function setupMediaIPC() {
   })
 
   // 获取媒体信息
-  ipcHandleWithLog('media:getInfo', async (event, inputPath) => {
+  ipcHandleWithLog('media:getInfo', async (_event, inputPath) => {
     return new Promise((resolve, reject) => {
       ffmpeg.ffprobe(inputPath, (err, metadata) => {
         if (err) {

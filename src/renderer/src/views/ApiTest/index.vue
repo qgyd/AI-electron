@@ -1,5 +1,5 @@
 <template>
-  <div class="api-test-container">
+  <div class="tool-container api-test-container">
     <div class="page-header">
       <h2>接口测试工具</h2>
     </div>
@@ -9,30 +9,41 @@
         <el-form-item label="请求地址">
           <el-input v-model="url" placeholder="请输入 API URL" class="url-input">
             <template #prepend>
-              <el-select v-model="method" style="width: 100px">
+              <el-select v-model="method" style="width: 110px">
                 <el-option label="GET" value="GET" />
                 <el-option label="POST" value="POST" />
                 <el-option label="PUT" value="PUT" />
                 <el-option label="DELETE" value="DELETE" />
+                <el-option label="PATCH" value="PATCH" />
               </el-select>
             </template>
             <template #append>
-              <el-button type="primary" class="send-btn" @click="sendRequest">发送请求</el-button>
+              <el-button type="primary" class="send-btn" :loading="loading" @click="send">
+                发送请求
+              </el-button>
             </template>
           </el-input>
         </el-form-item>
 
+        <el-form-item label="请求参数" class="params-item">
+          <el-tabs class="params-tabs">
+            <el-tab-pane label="Query Params">
+              <KeyValueEditor v-model="queryParams" />
+            </el-tab-pane>
+            <el-tab-pane label="Headers">
+              <KeyValueEditor v-model="headers" />
+            </el-tab-pane>
+            <el-tab-pane label="Body" :disabled="!canEditBody">
+              <BodyEditor v-model="body" :disabled="!canEditBody" />
+              <div v-if="!canEditBody" class="body-tip">GET / DELETE 请求默认不携带 Body</div>
+            </el-tab-pane>
+          </el-tabs>
+        </el-form-item>
+
         <el-form-item label="响应结果" class="response-item">
           <div class="response-wrapper">
-            <el-scrollbar max-height="400px">
-              <el-input
-                v-model="response"
-                type="textarea"
-                :rows="14"
-                readonly
-                placeholder="这里将显示接口返回数据..."
-                class="code-input"
-              />
+            <el-scrollbar max-height="420px">
+              <ResponseViewer :response="response" />
             </el-scrollbar>
           </div>
         </el-form-item>
@@ -42,27 +53,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import KeyValueEditor from './components/KeyValueEditor.vue'
+import BodyEditor from './components/BodyEditor.vue'
+import ResponseViewer from './components/ResponseViewer.vue'
+import { useApiTester } from './composables/useApiTester'
 
-const url = ref('https://jsonplaceholder.typicode.com/todos/1')
-const method = ref('GET')
-const response = ref('')
-
-const sendRequest = (): void => {
-  response.value = '正在请求...\n'
-  setTimeout(() => {
-    response.value = JSON.stringify(
-      {
-        userId: 1,
-        id: 1,
-        title: 'delectus aut autem',
-        completed: false
-      },
-      null,
-      2
-    )
-  }, 800)
-}
+const { url, method, queryParams, headers, body, canEditBody, loading, response, send } =
+  useApiTester()
 </script>
 
 <style scoped lang="scss">
@@ -127,6 +124,20 @@ const sendRequest = (): void => {
       margin-bottom: 0;
     }
 
+    .params-item {
+      margin-top: 18px;
+    }
+
+    .params-tabs {
+      width: 100%;
+    }
+
+    .body-tip {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--el-text-color-secondary);
+    }
+
     .response-wrapper {
       width: 100%;
       border-radius: 8px;
@@ -134,28 +145,7 @@ const sendRequest = (): void => {
       border: 1px solid var(--el-border-color);
       background-color: var(--el-fill-color-light);
 
-      :deep(.el-textarea__inner) {
-        background-color: transparent;
-        border: none;
-        box-shadow: none;
-        font-family: 'Fira Code', 'Consolas', monospace;
-        font-size: 13px;
-        line-height: 1.6;
-        color: var(--el-text-color-primary);
-        padding: 16px;
-        resize: none; // 禁用原生拖拽缩放
-
-        // 隐藏 textarea 的原生滚动条
-        &::-webkit-scrollbar {
-          display: none;
-        }
-        scrollbar-width: none;
-
-        &:hover,
-        &:focus {
-          box-shadow: none;
-        }
-      }
+      padding: 16px;
     }
   }
 }

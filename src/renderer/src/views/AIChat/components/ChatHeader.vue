@@ -13,9 +13,11 @@
       >
         <el-option-group label="硅基流动 (免费推荐)">
           <el-option label="Qwen 2.5 7B (阿里)" value="Qwen/Qwen2.5-7B-Instruct" />
-          <el-option label="Qwen 2.5 Coder 7B (编程优化)" value="Qwen/Qwen2.5-Coder-7B-Instruct" />
+          <el-option label="Qwen 2.7 Coder 7B (编程优化)" value="Qwen/Qwen2-7B-Instruct " />
           <el-option label="Llama 3.1 8B (Meta)" value="meta-llama/Meta-Llama-3.1-8B-Instruct" />
           <el-option label="GLM 4 9B (智谱)" value="THUDM/glm-4-9b-chat" />
+          <el-option label="Hunyuan 7B (腾讯)" value="tencent/Hunyuan-MT-7B" />
+          <el-option label="DeepSeek OCR (深度求索)" value="deepseek-ai/DeepSeek-OCR" />
           <el-option label="DeepSeek V2 (深度求索)" value="deepseek-ai/DeepSeek-V2-Chat" />
         </el-option-group>
         <el-option-group label="其他热门模型">

@@ -132,6 +132,8 @@ const {
   handleFileChange
 } = useMediaConvert()
 
+void uploadRef
+
 const targetFormat = ref<string>('mp3')
 const startTime = ref<string>('')
 const duration = ref<string>('')

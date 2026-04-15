@@ -81,12 +81,12 @@ export function useAIChat() {
           // 加上 { stream: true } 是为了让 TextDecoder 能够正确处理被截断的多字节 UTF-8 字符（如中文）
           const chunk = decoder.decode(value, { stream: true })
           buffer += chunk
-          
+
           const lines = buffer.split('\n')
-          
+
           // 如果最后一行不是以换行符结尾，说明这个 JSON 块被截断了，保留到下一次循环再处理
           buffer = lines.pop() || ''
-          
+
           for (const line of lines) {
             const trimmedLine = line.trim()
             if (!trimmedLine || trimmedLine === 'data: [DONE]') continue
@@ -95,7 +95,7 @@ export function useAIChat() {
               try {
                 const jsonStr = trimmedLine.substring(6)
                 if (!jsonStr) continue
-                
+
                 const data = JSON.parse(jsonStr)
                 if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
                   messages.value[aiMessageIndex].content += data.choices[0].delta.content
@@ -109,7 +109,7 @@ export function useAIChat() {
           }
         }
       }
-      
+
       // 流结束时释放最后的内部缓冲区
       decoder.decode()
     } catch (error: any) {

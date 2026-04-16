@@ -39,6 +39,34 @@
 
         <div class="section-title">系统与外观</div>
 
+        <el-form-item label="应用图标 (系统Logo)">
+          <div class="avatar-uploader-container">
+            <el-upload
+              class="avatar-uploader"
+              action="#"
+              :show-file-list="false"
+              :auto-upload="false"
+              accept="image/*"
+              @change="handleSysLogoChange"
+            >
+              <div class="avatar-wrapper" style="border-radius: 12px">
+                <el-avatar
+                  :size="60"
+                  shape="square"
+                  :src="
+                    settings.sysLogo ||
+                    'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png'
+                  "
+                />
+                <div class="avatar-upload-mask" style="border-radius: 12px">
+                  <el-icon><Camera /></el-icon>
+                </div>
+              </div>
+            </el-upload>
+            <div class="avatar-tip">点击更换左上角图标 (建议正方形)</div>
+          </div>
+        </el-form-item>
+
         <el-form-item label="系统名称">
           <el-input v-model="settings.sysName" placeholder="请输入系统名称" class="w-full" />
         </el-form-item>
@@ -269,6 +297,49 @@ const handleAvatarChange = (uploadFile: UploadFile) => {
         }
 
         ElMessage.success('头像更换成功')
+      }
+    }
+    img.src = dataUrl
+  }
+  reader.readAsDataURL(uploadFile.raw)
+}
+
+const handleSysLogoChange = (uploadFile: UploadFile) => {
+  if (!uploadFile.raw) return
+  const isImage = uploadFile.raw.type.startsWith('image/')
+  if (!isImage) {
+    ElMessage.error('请上传图片文件!')
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const dataUrl = e.target?.result as string
+
+    // 压缩系统 Logo
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const size = 120 // 限制大小
+      canvas.width = size
+      canvas.height = size
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        // 计算居中裁剪
+        const scale = Math.max(size / img.width, size / img.height)
+        const x = (size / scale - img.width) / 2
+        const y = (size / scale - img.height) / 2
+
+        // 为了支持透明背景（如 PNG logo），填充透明色
+        ctx.clearRect(0, 0, size, size)
+        ctx.scale(scale, scale)
+        ctx.drawImage(img, x, y)
+
+        // 系统 logo 推荐用 png 保留透明度
+        const compressedBase64 = canvas.toDataURL('image/png')
+        settings.sysLogo = compressedBase64
+
+        ElMessage.success('系统 Logo 更换成功')
       }
     }
     img.src = dataUrl

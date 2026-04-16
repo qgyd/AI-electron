@@ -1,7 +1,7 @@
 <template>
   <el-aside :width="isCollapse ? '80px' : '200px'" class="aside">
     <div class="logo" :class="{ 'is-collapse': isCollapse }">
-      <img src="@/assets/img/user.png" alt="logo" />
+      <img :src="settingsStore.sysLogo || defaultLogo" alt="logo" />
       <span v-show="!isCollapse">{{ settingsStore.sysName }}</span>
     </div>
     <el-menu
@@ -81,6 +81,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSettingsStore } from '@/store/settings'
+import defaultLogo from '@/assets/img/user.png'
 import {
   Connection,
   DocumentCopy,

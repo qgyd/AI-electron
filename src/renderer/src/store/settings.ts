@@ -5,6 +5,7 @@ export const useSettingsStore = defineStore(
   'settings',
   () => {
     const sysName = ref('My Tool')
+    const sysLogo = ref('') // 系统Logo base64
     const theme = ref('#1677ff') // 默认高级极客蓝
     const darkMode = ref(false)
     const lockTime = ref('30')
@@ -18,6 +19,7 @@ export const useSettingsStore = defineStore(
 
     const resetSettings = () => {
       sysName.value = 'My Tool'
+      sysLogo.value = ''
       theme.value = '#1677ff'
       darkMode.value = false
       lockTime.value = '30'
@@ -30,6 +32,7 @@ export const useSettingsStore = defineStore(
 
     return {
       sysName,
+      sysLogo,
       theme,
       darkMode,
       lockTime,

@@ -49,7 +49,7 @@ watch(
   background-color: var(--el-bg-color);
   -webkit-app-region: drag;
   flex-shrink: 0;
-  z-index: 9999;
+  z-index: 1000;
   position: relative;
   display: flex;
   align-items: center;

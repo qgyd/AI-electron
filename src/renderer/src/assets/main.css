@@ -1,5 +1,10 @@
 @import './base.css';
 
+:root {
+  /* 调整 ElMessage 全局距离顶部的偏移量，防止被自定义顶部拖拽栏遮挡 */
+  --el-message-top: 50px;
+}
+
 body {
   margin: 0;
   padding: 0;

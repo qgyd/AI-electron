@@ -36,6 +36,9 @@ export function setupAboutIPC() {
       // 关闭自动下载，仅检查
       autoUpdater.autoDownload = false
 
+      // 针对 GitHub 发布，由于通常网络原因，可考虑开启这行以加速（如果您的网络支持）
+      // 或者保持默认。默认会读取 electron-builder.yml 中的 publish 配置。
+
       const result = await autoUpdater.checkForUpdates()
       if (result && result.updateInfo && result.updateInfo.version !== app.getVersion()) {
         return { success: true, hasUpdate: true, version: result.updateInfo.version }

@@ -51,8 +51,8 @@ appImage:
 npmRebuild: false
 nodeGypRebuild: false
 publish:
-  provider: generic
-  url: https://dl.yxuer.com/styk/dist/${platform}
-  channel: latest
+  provider: github
+  owner: qgyd
+  repo: AI-electeon
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/

@@ -68,6 +68,11 @@
         <el-icon><Setting /></el-icon>
         <template #title>系统设置</template>
       </el-menu-item>
+
+      <el-menu-item index="/about">
+        <el-icon><InfoFilled /></el-icon>
+        <template #title>关于系统</template>
+      </el-menu-item>
     </el-menu>
   </el-aside>
 </template>
@@ -83,7 +88,7 @@ import {
   Reading,
   Setting,
   ChatDotSquare,
-  ChatDotRound
+  InfoFilled
 } from '@element-plus/icons-vue'
 
 // 接收父组件传入的 isCollapse 状态

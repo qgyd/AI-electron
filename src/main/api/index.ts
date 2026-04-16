@@ -5,6 +5,7 @@ import log, { getLogPath, openLogFolder, setLogPath } from '../logger'
 import { setupMediaIPC } from '../media'
 import { setupUploadIPC } from '../upload'
 import { setupWechatIPC } from '../wechat'
+import { setupAboutIPC } from '../about'
 import { ipcHandleWithLog, ipcOnWithLog } from './ipc'
 
 /**
@@ -83,10 +84,11 @@ export async function setupAllAPIs() {
 
   ipcHandleWithLog('path:join', (_, ...args) => join(...args))
 
-  // 3. 多媒体转换、云端上传与微信助手 API
+  // 3. 多媒体转换、云端上传、微信助手、关于页面 API
   setupMediaIPC()
   setupUploadIPC()
   setupWechatIPC()
+  setupAboutIPC()
 
   // 4. SQLite 数据库 API
   // 必须在 app.whenReady 之后再 require db，因此在此处动态引入

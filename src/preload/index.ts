@@ -60,6 +60,11 @@ const api = {
   },
   util: {
     fetchText: (url: string) => ipcRenderer.invoke('util:fetchText', url)
+  },
+  about: {
+    getSystemInfo: () => ipcRenderer.invoke('about:getSystemInfo'),
+    openExternal: (url: string) => ipcRenderer.invoke('about:openExternal', url),
+    checkForUpdates: () => ipcRenderer.invoke('about:checkForUpdates')
   }
 }
 

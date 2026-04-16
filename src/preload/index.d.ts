@@ -48,6 +48,16 @@ declare global {
       util: {
         fetchText: (url: string) => Promise<string>
       }
+      about: {
+        getSystemInfo: () => Promise<any>
+        openExternal: (url: string) => Promise<void>
+        checkForUpdates: () => Promise<{
+          success: boolean
+          hasUpdate?: boolean
+          version?: string
+          message?: string
+        }>
+      }
     }
   }
 }

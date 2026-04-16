@@ -126,6 +126,15 @@ const routes = [
         }
       },
       {
+        path: 'about',
+        name: 'About',
+        component: () => import('@/views/About/index.vue'),
+        meta: {
+          title: '关于',
+          icon: 'InfoFilled'
+        }
+      },
+      {
         path: 'profile',
         name: 'Profile',
         component: () => import('@/views/Profile/index.vue'),

@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { useApiHistoryStore } from '@/store/apiHistory'
@@ -61,6 +61,76 @@ export function useApiTester() {
 
   const canEditBody = computed(() => isMethodWithBody(method.value))
 
+  // --- 开始：URL 与 Query Params 的双向同步 ---
+  let isSyncingUrl = false
+  let isSyncingParams = false
+
+  watch(url, (newUrl) => {
+    if (isSyncingParams) return
+    isSyncingUrl = true
+
+    try {
+      const qIndex = newUrl.indexOf('?')
+      if (qIndex !== -1) {
+        const searchStr = newUrl.substring(qIndex + 1)
+        const params = new URLSearchParams(searchStr)
+        const newRows: KeyValueRow[] = []
+        params.forEach((value, key) => {
+          newRows.push({ enabled: true, key, value })
+        })
+        // 始终在末尾保留一个空行方便输入
+        newRows.push({ enabled: true, key: '', value: '' })
+        queryParams.value = newRows
+      } else {
+        queryParams.value = [{ enabled: true, key: '', value: '' }]
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    nextTick(() => {
+      isSyncingUrl = false
+    })
+  })
+
+  watch(
+    queryParams,
+    (newParams) => {
+      if (isSyncingUrl) return
+      isSyncingParams = true
+
+      try {
+        const qIndex = url.value.indexOf('?')
+        const baseUrl = qIndex !== -1 ? url.value.substring(0, qIndex) : url.value
+
+        const params = new URLSearchParams()
+        let hasValid = false
+        newParams.forEach((row) => {
+          if (row.enabled && row.key) {
+            params.append(row.key, row.value || '')
+            hasValid = true
+          }
+        })
+
+        if (hasValid) {
+          // 为了可读性，将 URLSearchParams 默认的 + 替换为更常见的 %20
+          const qStr = params.toString().replace(/\+/g, '%20')
+          url.value = `${baseUrl}?${qStr}`
+        } else {
+          url.value = baseUrl
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      nextTick(() => {
+        isSyncingParams = false
+      })
+    },
+    { deep: true }
+  )
+  // --- 结束：URL 与 Query Params 的双向同步 ---
+
   const send = async () => {
     const targetUrl = url.value.trim()
     if (!targetUrl) {
@@ -71,7 +141,7 @@ export function useApiTester() {
     response.value = { ok: true, dataText: '正在请求...' }
     loading.value = true
 
-    const paramsObj = buildObject(queryParams.value)
+    // 注意：不再使用 paramsObj 传给 axios，因为双向绑定已经把参数全部拼接到了 url 上
     const headersObj = buildObject(headers.value)
 
     let data: any = undefined
@@ -104,7 +174,6 @@ export function useApiTester() {
       const res = await axios.request({
         url: targetUrl,
         method: method.value,
-        params: paramsObj,
         headers: headersObj,
         data,
         timeout: 30000,

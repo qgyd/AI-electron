@@ -26,24 +26,21 @@
       <div class="message-content">
         <!-- User message -->
         <div v-if="msg.role === 'user'" class="text-content user-text">{{ msg.content }}</div>
+
+        <!-- AI message loading state (when empty and generating) -->
+        <div
+          v-else-if="!msg.content && isGenerating && index === messages.length - 1"
+          class="text-content ai-text loading-dots"
+        >
+          <span>.</span><span>.</span><span>.</span>
+        </div>
+
         <!-- AI message (Markdown rendered) -->
         <div
           v-else
           class="text-content ai-text markdown-body"
           v-html="renderMarkdown(msg.content)"
         ></div>
-      </div>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="isGenerating" class="message-wrapper assistant">
-      <div class="message-avatar">
-        <el-avatar src="https://api.dicebear.com/7.x/bottts/svg?seed=ai" size="small" />
-      </div>
-      <div class="message-content">
-        <div class="text-content ai-text loading-dots">
-          <span>.</span><span>.</span><span>.</span>
-        </div>
       </div>
     </div>
   </div>

@@ -1,7 +1,8 @@
 <template>
   <div class="tool-container api-test-container">
-    <div class="page-header">
+    <div class="page-header header-with-actions">
       <h2>接口测试工具</h2>
+      <el-button type="info" plain :icon="Clock" @click="showHistory = true"> 历史记录 </el-button>
     </div>
 
     <div class="content-card">
@@ -49,17 +50,93 @@
         </el-form-item>
       </el-form>
     </div>
+
+    <!-- 历史记录抽屉 -->
+    <el-drawer
+      v-model="showHistory"
+      title="请求历史记录"
+      direction="rtl"
+      size="360px"
+      destroy-on-close
+    >
+      <div v-if="apiHistoryStore.historyList.length === 0" class="empty-history">
+        <el-empty description="暂无历史记录" :image-size="80" />
+      </div>
+      <div v-else class="history-list">
+        <div class="history-actions">
+          <el-button type="danger" link @click="apiHistoryStore.clearHistory()">
+            清空历史记录
+          </el-button>
+        </div>
+        <div v-for="item in apiHistoryStore.historyList" :key="item.id" class="history-item">
+          <div class="history-header">
+            <el-tag size="small" :type="getMethodTagType(item.method)">{{ item.method }}</el-tag>
+            <span class="history-time">{{ new Date(item.timestamp).toLocaleString() }}</span>
+          </div>
+          <div class="history-url" :title="item.url">{{ item.url }}</div>
+          <div class="history-footer">
+            <el-button size="small" type="primary" @click="handleRestore(item)">
+              回填数据
+            </el-button>
+            <el-button
+              size="small"
+              type="danger"
+              link
+              @click="apiHistoryStore.removeHistory(item.id)"
+            >
+              删除
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </el-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import { Clock } from '@element-plus/icons-vue'
 import KeyValueEditor from './components/KeyValueEditor.vue'
 import BodyEditor from './components/BodyEditor.vue'
 import ResponseViewer from './components/ResponseViewer.vue'
 import { useApiTester } from './composables/useApiTester'
+import { useApiHistoryStore } from '@/store/apiHistory'
 
-const { url, method, queryParams, headers, body, canEditBody, loading, response, send } =
-  useApiTester()
+const apiHistoryStore = useApiHistoryStore()
+const showHistory = ref(false)
+
+const {
+  url,
+  method,
+  queryParams,
+  headers,
+  body,
+  canEditBody,
+  loading,
+  response,
+  send,
+  loadFromHistory
+} = useApiTester()
+
+const getMethodTagType = (m: string) => {
+  switch (m) {
+    case 'GET':
+      return 'success'
+    case 'POST':
+      return 'warning'
+    case 'PUT':
+      return 'info'
+    case 'DELETE':
+      return 'danger'
+    default:
+      return 'primary'
+  }
+}
+
+const handleRestore = (item: any) => {
+  loadFromHistory(item)
+  showHistory.value = false
+}
 </script>
 
 <style scoped lang="scss">
@@ -147,6 +224,70 @@ const { url, method, queryParams, headers, body, canEditBody, loading, response,
 
       padding: 16px;
     }
+  }
+
+  .header-with-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 16px 24px;
+
+    .history-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .history-item {
+      background-color: var(--el-fill-color-light);
+      border: 1px solid var(--el-border-color-light);
+      border-radius: 8px;
+      padding: 12px;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: var(--el-color-primary-light-5);
+        box-shadow: var(--el-box-shadow-light);
+      }
+
+      .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+
+        .history-time {
+          font-size: 12px;
+          color: var(--el-text-color-secondary);
+        }
+      }
+
+      .history-url {
+        font-size: 13px;
+        color: var(--el-text-color-primary);
+        word-break: break-all;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 12px;
+      }
+
+      .history-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+  }
+
+  .empty-history {
+    margin-top: 60px;
   }
 }
 </style>

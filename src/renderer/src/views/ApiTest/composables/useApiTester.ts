@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { useApiHistoryStore } from '@/store/apiHistory'
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
@@ -25,6 +26,10 @@ export interface ResponseState {
   headers?: Record<string, any>
   dataText?: string
   errorText?: string
+  isFile?: boolean
+  fileUrl?: string
+  fileName?: string
+  fileSize?: string
 }
 
 const buildObject = (rows: KeyValueRow[]) => {
@@ -43,6 +48,7 @@ const isMethodWithBody = (method: HttpMethod) => {
 }
 
 export function useApiTester() {
+  const apiHistoryStore = useApiHistoryStore()
   const url = ref('https://jsonplaceholder.typicode.com/todos/1')
   const method = ref<HttpMethod>('GET')
 
@@ -102,22 +108,58 @@ export function useApiTester() {
         headers: headersObj,
         data,
         timeout: 30000,
+        responseType: 'blob', // 设为 blob 以支持流文件下载
         validateStatus: () => true
       })
 
       const timeMs = Number((performance.now() - start).toFixed(1))
 
       const contentType = String(res.headers?.['content-type'] || '')
+      const blob = res.data as Blob
+
       let dataText = ''
-      if (typeof res.data === 'string') {
-        dataText = res.data
-      } else if (contentType.includes('application/json')) {
-        dataText = JSON.stringify(res.data, null, 2)
+      let isFile = false
+      let fileUrl = ''
+      let fileName = 'downloaded_file'
+      let fileSize = ''
+
+      // 判断是否是文本类数据
+      const isText =
+        contentType.includes('text') ||
+        contentType.includes('json') ||
+        contentType.includes('xml') ||
+        contentType.includes('javascript') ||
+        contentType.includes('html')
+
+      if (!isText && blob.size > 0 && !contentType.includes('application/json')) {
+        // 二进制流文件处理
+        isFile = true
+        fileUrl = URL.createObjectURL(blob)
+        fileSize = (blob.size / 1024).toFixed(2) + ' KB'
+
+        // 尝试从 content-disposition 中获取文件名
+        const disposition = String(res.headers?.['content-disposition'] || '')
+        const filenameMatch = disposition.match(
+          /filename\*?=['"]?(?:UTF-\d['"]*)?([^;\r\n"']*)['"]?/i
+        )
+        if (filenameMatch && filenameMatch[1]) {
+          fileName = decodeURIComponent(filenameMatch[1])
+        } else {
+          // 根据 content-type 猜测扩展名
+          const ext = contentType.split('/')[1]?.split(';')[0] || 'bin'
+          fileName = `download_${Date.now()}.${ext}`
+        }
+
+        dataText = `[收到二进制流文件] 大小: ${fileSize}\n点击“下载流文件”按钮进行保存。`
       } else {
-        try {
-          dataText = JSON.stringify(res.data, null, 2)
-        } catch {
-          dataText = String(res.data)
+        // 文本数据处理
+        dataText = await blob.text()
+        if (contentType.includes('application/json')) {
+          try {
+            dataText = JSON.stringify(JSON.parse(dataText), null, 2)
+          } catch {
+            // ignore
+          }
         }
       }
 
@@ -127,8 +169,21 @@ export function useApiTester() {
         statusText: res.statusText,
         timeMs,
         headers: res.headers,
-        dataText
+        dataText,
+        isFile,
+        fileUrl,
+        fileName,
+        fileSize
       }
+
+      // 记录到历史
+      apiHistoryStore.addHistory({
+        url: targetUrl,
+        method: method.value,
+        queryParams: JSON.parse(JSON.stringify(queryParams.value)),
+        headers: JSON.parse(JSON.stringify(headers.value)),
+        body: JSON.parse(JSON.stringify(body.value))
+      })
     } catch (e: any) {
       const timeMs = Number((performance.now() - start).toFixed(1))
       response.value = {
@@ -141,6 +196,14 @@ export function useApiTester() {
     }
   }
 
+  const loadFromHistory = (item: any) => {
+    url.value = item.url
+    method.value = item.method
+    queryParams.value = JSON.parse(JSON.stringify(item.queryParams))
+    headers.value = JSON.parse(JSON.stringify(item.headers))
+    body.value = JSON.parse(JSON.stringify(item.body))
+  }
+
   return {
     url,
     method,
@@ -150,6 +213,7 @@ export function useApiTester() {
     canEditBody,
     loading,
     response,
-    send
+    send,
+    loadFromHistory
   }
 }

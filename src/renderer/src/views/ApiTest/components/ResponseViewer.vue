@@ -6,6 +6,13 @@
       </el-tag>
       <span v-if="response.timeMs != null" class="meta-item">{{ response.timeMs }} ms</span>
       <span v-if="response.statusText" class="meta-item">{{ response.statusText }}</span>
+      <span v-if="response.fileSize" class="meta-item">{{ response.fileSize }}</span>
+    </div>
+
+    <div v-if="response.isFile" class="download-action">
+      <el-button type="success" :icon="Download" @click="handleDownload">
+        下载流文件 ({{ response.fileName }})
+      </el-button>
     </div>
 
     <el-tabs class="resp-tabs">
@@ -35,11 +42,22 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { Download } from '@element-plus/icons-vue'
 import type { ResponseState } from '../composables/useApiTester'
 
 const props = defineProps<{
   response: ResponseState
 }>()
+
+const handleDownload = () => {
+  if (!props.response.fileUrl || !props.response.fileName) return
+  const a = document.createElement('a')
+  a.href = props.response.fileUrl
+  a.download = props.response.fileName
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+}
 
 const bodyText = computed(() => {
   if (props.response.errorText) return props.response.errorText
@@ -68,6 +86,10 @@ const headersText = computed(() => {
       color: var(--el-text-color-secondary);
       font-size: 12px;
     }
+  }
+
+  .download-action {
+    margin-bottom: 12px;
   }
 
   .resp-tabs {

@@ -90,6 +90,15 @@ const routes = [
         }
       },
       {
+        path: 'wechat-assistant',
+        name: 'WechatAssistant',
+        component: () => import('@/views/WechatAssistant/index.vue'),
+        meta: {
+          title: '微信助手',
+          icon: 'ChatLineSquare'
+        }
+      },
+      {
         path: 'settings',
         name: 'Settings',
         component: () => import('@/views/Settings/index.vue'),

@@ -50,6 +50,9 @@ const api = {
       ipcRenderer.removeAllListeners('file:upload-progress')
       ipcRenderer.on('file:upload-progress', (_event, progress) => callback(progress))
     }
+  },
+  wechat: {
+    showPopup: (config: any, message: any) => ipcRenderer.send('wechat:show-popup', config, message)
   }
 }
 

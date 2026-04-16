@@ -7,44 +7,9 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  check_version:
-    name: Check Version Changed
-    runs-on: ubuntu-latest
-    outputs:
-      version_changed: ${{ steps.check.outputs.version_changed }}
-      current_version: ${{ steps.check.outputs.current_version }}
-      previous_version: ${{ steps.check.outputs.previous_version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check package.json version
-        id: check
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          CURRENT_VERSION="$(node -p "require('./package.json').version")"
-          echo "current_version=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
-
-          if git rev-parse HEAD^ >/dev/null 2>&1; then
-            PREV_VERSION="$(git show HEAD^:package.json | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version")"
-          else
-            PREV_VERSION=""
-          fi
-
-          echo "previous_version=${PREV_VERSION}" >> "$GITHUB_OUTPUT"
-
-          if [ -z "${PREV_VERSION}" ] || [ "${CURRENT_VERSION}" != "${PREV_VERSION}" ]; then
-            echo "version_changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "version_changed=false" >> "$GITHUB_OUTPUT"
-          fi
-
   build:
     name: Build (Always)
     runs-on: ubuntu-latest
@@ -66,9 +31,6 @@ jobs:
 
   package:
     name: Package (${{ matrix.os }})
-    needs:
-      - check_version
-    if: ${{ github.event_name == 'push' && needs.check_version.outputs.version_changed == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -95,19 +57,25 @@ jobs:
 
       - name: Package (Windows)
         if: ${{ runner.os == 'Windows' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx electron-builder --win
 
       - name: Package (macOS)
         if: ${{ runner.os == 'macOS' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx electron-builder --mac
 
       - name: Package (Linux)
         if: ${{ runner.os == 'Linux' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx electron-builder --linux AppImage deb
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: mytool-${{ needs.check_version.outputs.current_version }}-${{ runner.os }}
-          path: dist/**
-          if-no-files-found: error
+          name: mytool-build-${{ runner.os }}
+          path: dist/
+          if-no-files-found: warn

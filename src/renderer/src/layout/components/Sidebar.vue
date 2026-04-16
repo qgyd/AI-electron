@@ -44,15 +44,25 @@
         <template #title>本地记事本</template>
       </el-menu-item>
 
+      <el-menu-item index="/novel-reader">
+        <el-icon><Reading /></el-icon>
+        <template #title>小说阅读</template>
+      </el-menu-item>
+
       <el-menu-item index="/ai-chat">
         <el-icon><ChatDotSquare /></el-icon>
         <template #title>AI 智能助手</template>
       </el-menu-item>
 
-      <el-menu-item index="/wechat-assistant">
+      <el-menu-item index="/qq-chat">
+        <el-icon><ChatDotRound /></el-icon>
+        <template #title>QQ 聊天</template>
+      </el-menu-item>
+
+      <!-- <el-menu-item index="/wechat-assistant">
         <el-icon><ChatLineSquare /></el-icon>
         <template #title>微信助手</template>
-      </el-menu-item>
+      </el-menu-item> -->
 
       <el-menu-item index="/settings">
         <el-icon><Setting /></el-icon>
@@ -66,7 +76,15 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSettingsStore } from '@/store/settings'
-import { Connection, DocumentCopy, Edit, Setting, ChatDotSquare, ChatLineSquare } from '@element-plus/icons-vue'
+import {
+  Connection,
+  DocumentCopy,
+  Edit,
+  Reading,
+  Setting,
+  ChatDotSquare,
+  ChatDotRound
+} from '@element-plus/icons-vue'
 
 // 接收父组件传入的 isCollapse 状态
 defineProps<{

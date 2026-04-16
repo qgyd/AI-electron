@@ -13,6 +13,50 @@
 
         <el-divider border-style="dashed" />
 
+        <div class="section-title">系统通知增强</div>
+
+        <el-form-item label="监听系统通知">
+          <el-switch v-model="wechatStore.systemWatchEnabled" />
+        </el-form-item>
+
+        <el-form-item label="轮询间隔 (ms)">
+          <el-input-number v-model="wechatStore.pollIntervalMs" :min="500" :step="250" />
+        </el-form-item>
+
+        <el-form-item>
+          <template #label>
+            <div style="display: flex; flex-direction: column; line-height: 1.5">
+              <span>关键词过滤</span>
+              <span
+                style="font-size: 12px; color: var(--el-text-color-secondary); font-weight: normal"
+              >
+                用于识别微信通知来源
+              </span>
+            </div>
+          </template>
+          <el-select
+            v-model="wechatStore.keywords"
+            multiple
+            filterable
+            allow-create
+            default-first-option
+            placeholder="例如：WeChat / 微信"
+            class="w-full"
+          />
+        </el-form-item>
+
+        <el-form-item>
+          <el-alert
+            title="提示"
+            type="info"
+            :closable="false"
+            description="需要在系统设置里允许微信发送通知。本功能通过读取系统通知数据库实现，属于增强提醒方案，可能受系统版本与隐私策略影响。"
+            show-icon
+          />
+        </el-form-item>
+
+        <el-divider border-style="dashed" />
+
         <div class="section-title">弹窗尺寸</div>
 
         <el-form-item label="弹窗宽度 (px)">
@@ -52,12 +96,8 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" @click="testPopup">
-            发送测试消息弹窗
-          </el-button>
-          <el-button @click="wechatStore.resetSettings()">
-            恢复默认配置
-          </el-button>
+          <el-button type="primary" @click="testPopup"> 发送测试消息弹窗 </el-button>
+          <el-button @click="wechatStore.resetSettings()"> 恢复默认配置 </el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -65,13 +105,13 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, watch } from 'vue'
 import { useWechatStore } from '@/store/wechat'
 
 const wechatStore = useWechatStore()
 
-const testPopup = () => {
-  // 从 Store 获取纯数据对象
-  const config = {
+const getPopupConfig = () => {
+  return {
     enabled: wechatStore.enabled,
     width: wechatStore.width,
     height: wechatStore.height,
@@ -81,11 +121,49 @@ const testPopup = () => {
     opacity: wechatStore.opacity,
     duration: wechatStore.duration
   }
+}
 
+const startWatch = () => {
+  if (!window.api?.wechat) return
+  window.api.wechat.startWatch(getPopupConfig(), {
+    pollIntervalMs: wechatStore.pollIntervalMs,
+    keywords: wechatStore.keywords
+  })
+}
+
+const stopWatch = () => {
+  if (!window.api?.wechat) return
+  window.api.wechat.stopWatch()
+}
+
+const testPopup = () => {
   if (window.api && window.api.wechat) {
-    window.api.wechat.showPopup(config, '这是一条来自左侧菜单栏配置页面的测试消息！')
+    window.api.wechat.showPopup(getPopupConfig(), '这是一条来自左侧菜单栏配置页面的测试消息！')
   }
 }
+
+watch(
+  () => wechatStore.systemWatchEnabled,
+  (enabled) => {
+    if (enabled) startWatch()
+    else stopWatch()
+  }
+)
+
+watch(
+  () => [wechatStore.pollIntervalMs, wechatStore.keywords, wechatStore.enabled],
+  () => {
+    if (wechatStore.systemWatchEnabled) startWatch()
+  }
+)
+
+onMounted(() => {
+  if (wechatStore.systemWatchEnabled) startWatch()
+})
+
+onBeforeUnmount(() => {
+  stopWatch()
+})
 </script>
 
 <style scoped lang="scss">

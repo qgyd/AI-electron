@@ -81,6 +81,15 @@ const routes = [
         }
       },
       {
+        path: 'novel-reader',
+        name: 'NovelReader',
+        component: () => import('@/views/NovelReader/index.vue'),
+        meta: {
+          title: '小说阅读',
+          icon: 'Reading'
+        }
+      },
+      {
         path: 'ai-chat',
         name: 'AIChat',
         component: () => import('@/views/AIChat/index.vue'),
@@ -96,6 +105,15 @@ const routes = [
         meta: {
           title: '微信助手',
           icon: 'ChatLineSquare'
+        }
+      },
+      {
+        path: 'qq-chat',
+        name: 'QQChat',
+        component: () => import('@/views/QQChat/index.vue'),
+        meta: {
+          title: 'QQ聊天',
+          icon: 'ChatDotRound'
         }
       },
       {

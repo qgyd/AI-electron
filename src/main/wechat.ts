@@ -1,42 +1,41 @@
 import { BrowserWindow, screen } from 'electron'
 import { ipcOnWithLog } from './api/ipc'
+import { startWechatNotificationWatch, type WechatNotificationWatchStopper } from './wechat-watch'
 
 let popupWindows: BrowserWindow[] = []
+let stopWatch: WechatNotificationWatchStopper | null = null
 
-export function setupWechatIPC() {
-  ipcOnWithLog('wechat:show-popup', (_, config, message) => {
-    if (!config || !config.enabled) return
+function showPopup(config: any, message: string) {
+  if (!config || !config.enabled) return
 
-    const { width, height, duration } = config
-    const { workArea } = screen.getPrimaryDisplay()
+  const { width, height, duration } = config
+  const { workArea } = screen.getPrimaryDisplay()
 
-    // 计算屏幕右上角位置，支持多个弹窗向下堆叠
-    const x = Math.round(workArea.x + workArea.width - width - 20)
-    const yOffset = popupWindows.length * (parseInt(height) + 15)
-    const y = Math.round(workArea.y + 20 + yOffset)
+  const x = Math.round(workArea.x + workArea.width - width - 20)
+  const yOffset = popupWindows.length * (parseInt(height) + 15)
+  const y = Math.round(workArea.y + 20 + yOffset)
 
-    let popup = new BrowserWindow({
-      width: parseInt(width),
-      height: parseInt(height),
-      x: x,
-      y: y,
-      frame: false,
-      transparent: true,
-      alwaysOnTop: true,
-      skipTaskbar: true,
-      focusable: false,
-      resizable: false,
-      hasShadow: false,
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true
-      }
-    })
+  const popup = new BrowserWindow({
+    width: parseInt(width),
+    height: parseInt(height),
+    x: x,
+    y: y,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    focusable: false,
+    resizable: false,
+    hasShadow: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true
+    }
+  })
 
-    // 安全处理消息，防止 XSS
-    const safeMessage = (message || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const safeMessage = (message || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-    const htmlContent = `
+  const htmlContent = `
     <!DOCTYPE html>
     <html lang="zh-CN">
     <head>
@@ -51,7 +50,7 @@ export function setupWechatIPC() {
           overflow: hidden;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        
+
         #container {
           box-sizing: border-box;
           width: 100%;
@@ -78,7 +77,7 @@ export function setupWechatIPC() {
           margin-right: 15px;
           flex-shrink: 0;
         }
-        
+
         .icon-wrap svg {
           width: 32px;
           height: 32px;
@@ -125,17 +124,41 @@ export function setupWechatIPC() {
     </html>
     `
 
-    popup.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`)
+  popup.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`)
 
-    popupWindows.push(popup)
+  popupWindows.push(popup)
 
-    // 定时自动关闭
-    setTimeout(() => {
-      if (popup && !popup.isDestroyed()) {
-        popup.close()
-        // 从数组中移除
-        popupWindows = popupWindows.filter((p) => p !== popup)
-      }
-    }, parseInt(duration))
+  setTimeout(() => {
+    if (popup && !popup.isDestroyed()) {
+      popup.close()
+      popupWindows = popupWindows.filter((p) => p !== popup)
+    }
+  }, parseInt(duration))
+}
+
+export function setupWechatIPC() {
+  ipcOnWithLog('wechat:show-popup', (_event, config, message) => {
+    showPopup(config, message)
+  })
+
+  ipcOnWithLog('wechat:watch-start', (_event, config, watchOptions) => {
+    if (stopWatch) stopWatch()
+    const pollIntervalMs = Number(watchOptions?.pollIntervalMs ?? 1500)
+    const keywords = Array.isArray(watchOptions?.keywords)
+      ? watchOptions.keywords
+      : ['wechat', '微信']
+
+    stopWatch = startWechatNotificationWatch({
+      pollIntervalMs,
+      keywords,
+      onMessage: (msg) => showPopup(config, msg)
+    })
+  })
+
+  ipcOnWithLog('wechat:watch-stop', () => {
+    if (stopWatch) {
+      stopWatch()
+      stopWatch = null
+    }
   })
 }

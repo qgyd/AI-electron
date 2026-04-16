@@ -52,7 +52,14 @@ const api = {
     }
   },
   wechat: {
-    showPopup: (config: any, message: any) => ipcRenderer.send('wechat:show-popup', config, message)
+    showPopup: (config: any, message: any) =>
+      ipcRenderer.send('wechat:show-popup', config, message),
+    startWatch: (config: any, watchOptions: any) =>
+      ipcRenderer.send('wechat:watch-start', config, watchOptions),
+    stopWatch: () => ipcRenderer.send('wechat:watch-stop')
+  },
+  util: {
+    fetchText: (url: string) => ipcRenderer.invoke('util:fetchText', url)
   }
 }
 

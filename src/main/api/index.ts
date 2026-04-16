@@ -11,6 +11,28 @@ import { ipcHandleWithLog, ipcOnWithLog } from './ipc'
  * 统一注册主进程的所有 IPC API
  */
 export async function setupAllAPIs() {
+  // 0. 通用工具 API (处理跨域等)
+  ipcHandleWithLog('util:fetchText', async (_, url: string) => {
+    try {
+      const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status}`)
+      }
+      const arrayBuffer = await response.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+
+      // 自动识别 UTF-8 与 GBK
+      try {
+        return new TextDecoder('utf-8', { fatal: true }).decode(buffer)
+      } catch (err) {
+        return new TextDecoder('gbk').decode(buffer)
+      }
+    } catch (err: any) {
+      log.error('fetchText error:', err.message)
+      throw err
+    }
+  })
+
   // 1. 系统与日志 API
   ipcOnWithLog('ping', () => log.info('pong'))
   ipcHandleWithLog('log:getPath', () => getLogPath())

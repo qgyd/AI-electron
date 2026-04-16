@@ -36,10 +36,18 @@ declare global {
           fileType?: string
         }) => Promise<{ success: boolean; data: any }>
         onUploadProgress: (callback: (progress: { percent: number }) => void) => void
+      }
+      wechat: {
+        showPopup: (config: any, message: string) => void
+        startWatch: (
+          config: any,
+          watchOptions: { pollIntervalMs: number; keywords: string[] }
+        ) => void
+        stopWatch: () => void
+      }
+      util: {
+        fetchText: (url: string) => Promise<string>
+      }
     }
-    wechat: {
-      showPopup: (config: any, message: string) => void
-    }
-  }
   }
 }

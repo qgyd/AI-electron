@@ -6,37 +6,7 @@
 
     <div class="settings-content">
       <el-form label-width="160px" class="settings-form" label-position="left">
-        <div class="section-title">用户设置</div>
-
-        <el-form-item label="当前头像">
-          <div class="avatar-uploader-container">
-            <el-upload
-              class="avatar-uploader"
-              action="#"
-              :show-file-list="false"
-              :auto-upload="false"
-              accept="image/*"
-              @change="handleAvatarChange"
-            >
-              <div class="avatar-wrapper">
-                <el-avatar
-                  :size="60"
-                  :src="
-                    userStore.avatar ||
-                    'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
-                  "
-                />
-                <div class="avatar-upload-mask">
-                  <el-icon><Camera /></el-icon>
-                </div>
-              </div>
-            </el-upload>
-            <div class="avatar-tip">点击更换头像 (支持本地图片)</div>
-          </div>
-        </el-form-item>
-
-        <el-divider border-style="dashed" />
-
+        <!-- 去除“用户设置”这整个区块 -->
         <div class="section-title">系统与外观</div>
 
         <el-form-item label="应用图标 (系统Logo)">
@@ -223,10 +193,8 @@ import { ElMessage } from 'element-plus'
 import { Camera } from '@element-plus/icons-vue'
 import type { UploadFile } from 'element-plus'
 import { useSettingsStore } from '@/store/settings'
-import { useUserStore } from '@/store/user'
 
 const settings = useSettingsStore()
-const userStore = useUserStore()
 const logPath = ref('')
 
 onMounted(async () => {
@@ -251,57 +219,6 @@ const changeOutputDir = async () => {
 
 const openLogFolder = () => {
   window.api.log.openFolder()
-}
-
-const handleAvatarChange = (uploadFile: UploadFile) => {
-  if (!uploadFile.raw) return
-  const isImage = uploadFile.raw.type.startsWith('image/')
-  if (!isImage) {
-    ElMessage.error('请上传图片文件!')
-    return
-  }
-
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-
-    // 使用 Canvas 压缩图片，避免 base64 过大撑爆 localStorage
-    const img = new Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      const size = 120 // 限制头像大小为 120x120
-      canvas.width = size
-      canvas.height = size
-      const ctx = canvas.getContext('2d')
-      if (ctx) {
-        // 计算居中裁剪
-        const scale = Math.max(size / img.width, size / img.height)
-        const x = (size / scale - img.width) / 2
-        const y = (size / scale - img.height) / 2
-
-        ctx.scale(scale, scale)
-        ctx.drawImage(img, x, y)
-
-        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8)
-        userStore.avatar = compressedBase64
-
-        // 如果有登录且有后端 API，也可同步到数据库
-        if (userStore.id && window.api?.db) {
-          window.api.db
-            .updateUserInfo({
-              id: userStore.id,
-              username: userStore.username,
-              avatar: compressedBase64
-            })
-            .catch(console.error)
-        }
-
-        ElMessage.success('头像更换成功')
-      }
-    }
-    img.src = dataUrl
-  }
-  reader.readAsDataURL(uploadFile.raw)
 }
 
 const handleSysLogoChange = (uploadFile: UploadFile) => {

@@ -57,6 +57,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 关键修复：配置 Git 用户名和邮箱，并添加重试机制
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global http.postBuffer 524288000
+          git config --global core.compression 0
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -86,6 +94,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 关键修复：配置 Git 用户名和邮箱，以及大文件支持，防止因为网络问题拉取或推送失败
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global http.postBuffer 524288000
+          git config --global core.compression 0
+          
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -102,18 +118,21 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: electron-builder
         run: npx electron-builder --win -p always
 
       - name: Package (macOS)
         if: ${{ runner.os == 'macOS' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: electron-builder
         run: npx electron-builder --mac -p always
 
       - name: Package (Linux)
         if: ${{ runner.os == 'Linux' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: electron-builder
         run: npx electron-builder --linux AppImage deb -p always
 
       - name: Upload artifacts

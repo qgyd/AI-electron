@@ -6,7 +6,7 @@ export default defineConfig({
   main: {
     plugins: [
       externalizeDepsPlugin({
-        exclude: ['qiniu', 'axios'] // 强制打包 qiniu 和 axios，防止 electron-builder 破坏其 node_modules 结构
+        exclude: ['qiniu', 'axios'] // 恢复只 exclude 主包
       })
     ],
     build: {

@@ -19,6 +19,7 @@ asarUnpack:
   - node_modules/@ffmpeg-installer/**/*
   - node_modules/@ffprobe-installer/**/*
 win:
+  icon: build/icon.png
   target:
     - target: nsis
       arch:

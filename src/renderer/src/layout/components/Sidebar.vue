@@ -54,10 +54,10 @@
         <template #title>AI 智能助手</template>
       </el-menu-item>
 
-      <el-menu-item index="/qq-chat">
+      <!-- <el-menu-item index="/qq-chat">
         <el-icon><ChatDotRound /></el-icon>
         <template #title>QQ 聊天</template>
-      </el-menu-item>
+      </el-menu-item> -->
 
       <!-- <el-menu-item index="/wechat-assistant">
         <el-icon><ChatLineSquare /></el-icon>

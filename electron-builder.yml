@@ -54,6 +54,6 @@ nodeGypRebuild: false
 publish:
   provider: github
   owner: qgyd
-  repo: AI-electron
+  repo: AI-electeon
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/

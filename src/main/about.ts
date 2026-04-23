@@ -5,6 +5,20 @@ import { ipcHandleWithLog } from './api/ipc'
 import log from './logger'
 
 export function setupAboutIPC() {
+  // 配置日志输出，方便排查更新问题
+  autoUpdater.logger = log
+  // 开启自动下载
+  autoUpdater.autoDownload = true
+
+  // 监听下载完成事件，自动安装
+  autoUpdater.on('update-downloaded', () => {
+    log.info('新版本下载完成，准备安装...')
+    // 延迟一秒执行，确保日志写入和其他清理工作完成
+    setTimeout(() => {
+      autoUpdater.quitAndInstall()
+    }, 1000)
+  })
+
   ipcHandleWithLog('about:getSystemInfo', async () => {
     return {
       appName: 'MyTool', // 使用自定义名字或者 app.getName()
@@ -31,17 +45,14 @@ export function setupAboutIPC() {
         return { success: false, message: '开发环境不支持检查更新，请打包后测试' }
       }
 
-      // 配置日志输出，方便排查更新问题
-      autoUpdater.logger = log
-      // 关闭自动下载，仅检查
-      autoUpdater.autoDownload = false
-
-      // 针对 GitHub 发布，由于通常网络原因，可考虑开启这行以加速（如果您的网络支持）
-      // 或者保持默认。默认会读取 electron-builder.yml 中的 publish 配置。
-
       const result = await autoUpdater.checkForUpdates()
       if (result && result.updateInfo && result.updateInfo.version !== app.getVersion()) {
-        return { success: true, hasUpdate: true, version: result.updateInfo.version }
+        return { 
+          success: true, 
+          hasUpdate: true, 
+          version: result.updateInfo.version,
+          message: '发现新版本，正在后台下载，下载完成后将自动重启安装' 
+        }
       }
       return { success: true, hasUpdate: false, message: '当前已经是最新版本' }
     } catch (e: any) {

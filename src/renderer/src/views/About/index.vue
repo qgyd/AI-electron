@@ -92,7 +92,7 @@ const handleCheckUpdate = async () => {
     const result = await window.api.about.checkForUpdates()
     if (result.success) {
       if (result.hasUpdate) {
-        ElMessage.success(`发现新版本: v${result.version}，请前往官网下载或等待自动更新`)
+        ElMessage.success(result.message || `发现新版本: v${result.version}，正在后台下载...`)
       } else {
         ElMessage.success(result.message || '当前已经是最新版本')
       }
@@ -108,7 +108,7 @@ const handleCheckUpdate = async () => {
 
 const openRepo = () => {
   if (window.api && window.api.about) {
-    window.api.about.openExternal('https://github.com/qgyd/AI-electeon')
+    window.api.about.openExternal('https://github.com/qgyd/AI-electron')
   }
 }
 

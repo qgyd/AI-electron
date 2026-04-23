@@ -67,7 +67,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Monitor, Link, Download } from '@element-plus/icons-vue'
 

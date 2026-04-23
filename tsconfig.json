@@ -5,6 +5,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/renderer/src/*"]
-    }
+    },
+    "types": ["unplugin-auto-import/vite"]
   }
 }

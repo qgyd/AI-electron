@@ -4,7 +4,8 @@
     "src/renderer/src/env.d.ts",
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.vue",
-    "src/preload/*.d.ts"
+    "src/preload/*.d.ts",
+    "src/renderer/src/auto-imports.d.ts"
   ],
   "compilerOptions": {
     "composite": true,
@@ -16,6 +17,7 @@
       "@/*": [
         "src/renderer/src/*"
       ]
-    }
+    },
+    "types": ["unplugin-auto-import/vite"]
   }
 }

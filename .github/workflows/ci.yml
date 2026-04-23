@@ -122,7 +122,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: electron-builder
-        run: npx electron-builder --win -p always
+        run: npx electron-builder --win --publish always
 
       - name: Package (macOS)
         if: ${{ runner.os == 'macOS' }}
@@ -130,7 +130,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: electron-builder
-        run: npx electron-builder --mac -p always
+        run: npx electron-builder --mac --publish always
 
       - name: Package (Linux)
         if: ${{ runner.os == 'Linux' }}
@@ -138,7 +138,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: electron-builder
-        run: npx electron-builder --linux AppImage deb -p always
+        run: npx electron-builder --linux AppImage deb --publish always
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

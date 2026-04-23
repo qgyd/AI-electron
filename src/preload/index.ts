@@ -64,7 +64,12 @@ const api = {
   about: {
     getSystemInfo: () => ipcRenderer.invoke('about:getSystemInfo'),
     openExternal: (url: string) => ipcRenderer.invoke('about:openExternal', url),
-    checkForUpdates: () => ipcRenderer.invoke('about:checkForUpdates')
+    checkForUpdates: () => ipcRenderer.invoke('about:checkForUpdates'),
+    installUpdate: () => ipcRenderer.invoke('about:installUpdate'),
+    onUpdateDownloaded: (callback: () => void) => {
+      ipcRenderer.removeAllListeners('about:update-downloaded')
+      ipcRenderer.on('about:update-downloaded', () => callback())
+    }
   }
 }
 

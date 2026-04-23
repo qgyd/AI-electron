@@ -57,6 +57,8 @@ declare global {
           version?: string
           message?: string
         }>
+        installUpdate: () => Promise<{ success: boolean; message?: string }>
+        onUpdateDownloaded: (callback: () => void) => void
       }
     }
   }

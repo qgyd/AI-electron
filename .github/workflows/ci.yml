@@ -120,6 +120,7 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: electron-builder
         run: npx electron-builder --win -p always
 
@@ -127,6 +128,7 @@ jobs:
         if: ${{ runner.os == 'macOS' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: electron-builder
         run: npx electron-builder --mac -p always
 
@@ -134,6 +136,7 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: electron-builder
         run: npx electron-builder --linux AppImage deb -p always
 

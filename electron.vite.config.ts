@@ -7,7 +7,7 @@ export default defineConfig({
   main: {
     plugins: [
       externalizeDepsPlugin({
-        exclude: ['qiniu', 'axios', 'urllib', 'proxy-agent'] // 增加 urllib, proxy-agent 防止被不当 externalize
+        exclude: ['qiniu', 'axios', 'urllib', 'proxy-agent', 'call-bind-apply-helpers'] // 增加 call-bind-apply-helpers
       })
     ],
     build: {

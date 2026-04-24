@@ -6,13 +6,11 @@ import AutoImport from 'unplugin-auto-import/vite'
 export default defineConfig({
   main: {
     plugins: [
-      externalizeDepsPlugin({
-        exclude: ['qiniu', 'axios', 'urllib', 'proxy-agent', 'call-bind-apply-helpers'] // 增加 call-bind-apply-helpers
-      })
+      externalizeDepsPlugin() // 恢复默认行为，让它自动外部化 dependencies
     ],
     build: {
       rollupOptions: {
-        external: ['sqlite3']
+        external: ['sqlite3', 'fluent-ffmpeg', '@ffmpeg-installer/ffmpeg', '@ffprobe-installer/ffprobe']
       }
     }
   },

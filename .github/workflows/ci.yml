@@ -124,7 +124,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: electron-builder
         run: |
-          npx electron-builder --win -p always || true
+          npx electron-builder --win --publish always || true
 
       - name: Package (macOS)
         if: ${{ runner.os == 'macOS' }}

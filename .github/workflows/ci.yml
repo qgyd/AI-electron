@@ -32,9 +32,10 @@ jobs:
           CURRENT_VERSION="$(node -p "require('./package.json').version")"
           echo "current_version=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
 
-          # 获取上一个提交（HEAD^）的 package.json 中的 version
+          # 获取上一个提交的 package.json 中的 version（兼容首个提交或没有历史的情况）
           if git rev-parse HEAD~1 >/dev/null 2>&1; then
-            PREV_VERSION="$(git show HEAD~1:package.json | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" 2>/dev/null || echo "")"
+            # 增加 -q 抑制 grep 的错误，或者如果文件在 HEAD~1 不存在，则返回空
+            PREV_VERSION="$(git show HEAD~1:package.json 2>/dev/null | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" 2>/dev/null || echo "")"
           else
             PREV_VERSION=""
           fi

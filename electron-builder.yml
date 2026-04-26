@@ -31,6 +31,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: always
   createStartMenuShortcut: true
+  shortcutName: 工具助手
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:

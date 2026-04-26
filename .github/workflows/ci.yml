@@ -26,20 +26,24 @@ jobs:
         id: check
         shell: bash
         run: |
+          set +e # 防止由于 git 历史错误导致整个 CI 崩溃
+
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
           if git rev-parse HEAD^ >/dev/null 2>&1; then
-            PREV=$(git show HEAD^:package.json | node -p "JSON.parse(require('fs').readFileSync(0)).version")
+            PREV=$(git show HEAD^:package.json 2>/dev/null | node -p "JSON.parse(require('fs').readFileSync(0)).version" 2>/dev/null || echo "")
           else
             PREV=""
           fi
 
-          if [ "$VERSION" != "$PREV" ]; then
+          if [ "$VERSION" != "$PREV" ] || [ -z "$PREV" ]; then
             echo "version_changed=true" >> $GITHUB_OUTPUT
           else
             echo "version_changed=false" >> $GITHUB_OUTPUT
           fi
+          
+          exit 0
 
   build:
     needs: check_version

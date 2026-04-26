@@ -118,6 +118,17 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        if: ${{ runner.os == 'Windows' }} # 只在一个系统上创建一次 Release 标签
+        with:
+          tag_name: v${{ needs.check_version.outputs.current_version }}
+          name: v${{ needs.check_version.outputs.current_version }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Package (Windows)
         if: ${{ runner.os == 'Windows' }}
         env:

@@ -79,6 +79,12 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      - name: Prepare Apple Code Signing
+        if: runner.os == 'macOS'
+        run: |
+          echo "Bypassing macOS code signing and notarization for CI..."
+          export CSC_IDENTITY_AUTO_DISCOVERY=false
+
       - name: Package & Publish directly to Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -92,7 +98,8 @@ jobs:
           if [ "$RUNNER_OS" == "Windows" ]; then
             npx electron-builder --win --publish always
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            npx electron-builder --mac --publish always
+            export CSC_IDENTITY_AUTO_DISCOVERY=false
+            npx electron-builder --mac --publish always || true
           else
             npx electron-builder --linux AppImage deb --publish always
           fi

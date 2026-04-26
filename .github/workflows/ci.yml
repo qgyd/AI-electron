@@ -15,25 +15,29 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version_changed: ${{ steps.check.outputs.version_changed }}
-      current_version: ${{ steps.check.outputs.current_version }}
-      previous_version: ${{ steps.check.outputs.previous_version }}
+      version: ${{ steps.check.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # 必须拉取完整的历史记录以便对比版本号，fetch-depth: 2 容易因为多文件 commit 导致找不到上一个版本
 
       - name: Check package.json version
         id: check
         shell: bash
         run: |
-          CURRENT_VERSION="$(node -p "require('./package.json').version")"
-          echo "current_version=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-          # 终极无脑版本检测：无论什么情况，只要这个工作流被触发，我们都认为需要打包！
-          # （这消除了所有因为 Git 历史、网络或者 bash pipe 导致的脆弱性报错）
-          echo "version_changed=true" >> "$GITHUB_OUTPUT"
-          echo "✅ 强制进入打包流程！"
+          if git rev-parse HEAD^ >/dev/null 2>&1; then
+            PREV=$(git show HEAD^:package.json | node -p "JSON.parse(require('fs').readFileSync(0)).version")
+          else
+            PREV=""
+          fi
+
+          if [ "$VERSION" != "$PREV" ]; then
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+          fi
 
   build:
     name: Build (Always)
@@ -66,7 +70,6 @@ jobs:
     name: Package (${{ matrix.os }})
     needs:
       - check_version
-      - build
     if: ${{ needs.check_version.outputs.version_changed == 'true' }}
     permissions:
       contents: write # 给 workflow 写 Releases 的权限
@@ -109,8 +112,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: ${{ runner.os == 'Windows' }} # 仅在其中一个环境（比如 Windows）执行一次创建
         with:
-          tag_name: v${{ needs.check_version.outputs.current_version }}
-          name: v${{ needs.check_version.outputs.current_version }}
+          tag_name: v${{ needs.check_version.outputs.version }}
+          name: v${{ needs.check_version.outputs.version }}
           draft: false
           prerelease: false
         env:

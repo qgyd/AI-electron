@@ -24,7 +24,8 @@ win:
     - target: nsis
       arch:
         - x64
-  executableName: 工具助手
+  executableName: mytool
+  artifactName: mytool-setup-${version}.${ext}
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true

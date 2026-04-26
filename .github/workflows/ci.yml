@@ -5,6 +5,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# ⭐ 防止重复发布
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 # -------------------------------------------------
 # 1️⃣ 判断版本是否变化
@@ -38,11 +43,14 @@ jobs:
           fi
 
 # -------------------------------------------------
-# 2️⃣ 各系统打包（不发布）
+# 2️⃣ 各系统打包
 # -------------------------------------------------
   build:
     needs: check_version
-    if: needs.check_version.outputs.version_changed == 'true'
+    if: |
+      needs.check_version.outputs.version_changed == 'true' ||
+      github.event_name == 'workflow_dispatch'
+
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
@@ -50,7 +58,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -72,25 +79,28 @@ jobs:
             npx electron-builder --linux AppImage deb --publish never
           fi
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: dist-${{ runner.os }}
+          # 关键修改：根据 electron-builder.yml 中的配置，各平台的打包结果会分别输出到 dist/win、dist/mac、dist/linux 目录中
           path: |
-            dist/*.exe
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.yml
-            dist/*.blockmap
+            dist/**/*.exe
+            dist/**/*.dmg
+            dist/**/*.AppImage
+            dist/**/*.deb
+            dist/**/*.yml
+            dist/**/*.blockmap
 
 # -------------------------------------------------
-# 3️⃣ 统一发布 Release ⭐
+# 3️⃣ 发布 Release
 # -------------------------------------------------
   release:
     needs: [check_version, build]
-    runs-on: ubuntu-latest
+    if: |
+      needs.check_version.outputs.version_changed == 'true' ||
+      github.event_name == 'workflow_dispatch'
 
+    runs-on: ubuntu-latest
     permissions:
       contents: write
 
@@ -99,11 +109,12 @@ jobs:
         with:
           path: artifacts
 
-      - name: Create Release & Upload
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.check_version.outputs.version }}
           name: v${{ needs.check_version.outputs.version }}
           files: artifacts/**/*
+          fail_on_unmatched_files: false
+          overwrite_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

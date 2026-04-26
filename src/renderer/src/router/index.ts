@@ -81,6 +81,15 @@ const routes = [
         }
       },
       {
+        path: 'calculator',
+        name: 'Calculator',
+        component: () => import('@/views/Calculator/index.vue'),
+        meta: {
+          title: '计算器',
+          icon: 'Grid'
+        }
+      },
+      {
         path: 'novel-reader',
         name: 'NovelReader',
         component: () => import('@/views/NovelReader/index.vue'),

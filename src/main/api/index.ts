@@ -101,10 +101,11 @@ export async function setupAllAPIs() {
 
     ipcHandleWithLog('db:addNote', async (_, note) => await noteService.addNote(note))
     ipcHandleWithLog('db:updateNote', async (_, note) => await noteService.updateNote(note))
-    ipcHandleWithLog('db:getNotes', async () => await noteService.getNotes())
-    ipcHandleWithLog('db:getNoteById', async (_, id) => await noteService.getNoteById(id))
-    ipcHandleWithLog('db:deleteNote', async (_, id) => await noteService.deleteNote(id))
+    ipcHandleWithLog('db:getNotes', async (_, userId) => await noteService.getNotes(userId))
+    ipcHandleWithLog('db:getNoteById', async (_, id, userId) => await noteService.getNoteById(id, userId))
+    ipcHandleWithLog('db:deleteNote', async (_, id, userId) => await noteService.deleteNote(id, userId))
 
+    ipcHandleWithLog('db:register', async (_, params) => await userService.register(params))
     ipcHandleWithLog('db:login', async (_, params) => await userService.login(params))
     ipcHandleWithLog(
       'db:updateUserInfo',

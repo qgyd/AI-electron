@@ -119,6 +119,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import '@wangeditor/editor/dist/css/style.css'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import type { IDomEditor } from '@wangeditor/editor'
+import { useUserStore } from '@/store/user'
+
+const userStore = useUserStore()
 
 // 视图状态
 const isEditing = ref(false)
@@ -216,7 +219,7 @@ const formatDate = (timestamp: number) => {
 // 获取笔记列表
 const loadNotesList = async () => {
   try {
-    notesList.value = await window.api.db.getNotes()
+    notesList.value = await window.api.db.getNotes(userStore.id || 0)
   } catch (e) {
     console.error('获取笔记列表失败:', e)
     ElMessage.error('读取数据库失败')
@@ -235,7 +238,7 @@ const handleCommand = (command: string, id: number) => {
 // 进入编辑模式 (修改)
 const editNote = async (id: number) => {
   try {
-    const note = await window.api.db.getNoteById(id)
+    const note = await window.api.db.getNoteById(id, userStore.id || 0)
     if (note) {
       currentNoteId.value = note.id
       noteTitle.value = note.title
@@ -298,7 +301,7 @@ const deleteNote = async (id: number) => {
       type: 'warning'
     })
 
-    await window.api.db.deleteNote(id)
+    await window.api.db.deleteNote(id, userStore.id || 0)
     ElMessage.success('笔记已删除')
     if (isEditing.value && currentNoteId.value === id) {
       isEditing.value = false
@@ -315,7 +318,8 @@ const saveNote = async () => {
   try {
     const noteData = {
       title: noteTitle.value.trim() || '无标题笔记',
-      content: valueHtml.value
+      content: valueHtml.value,
+      user_id: userStore.id || 0
     }
 
     if (currentNoteId.value) {
@@ -335,6 +339,10 @@ const saveNote = async () => {
 
     isSaved.value = true
     ElMessage.success('笔记已保存到本地数据库')
+    
+    // 保存成功后自动跳转回笔记列表
+    isEditing.value = false
+    await loadNotesList()
   } catch (e) {
     console.error('保存失败', e)
     ElMessage.error('保存失败，请检查数据库状态')

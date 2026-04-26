@@ -44,6 +44,11 @@
         <template #title>本地记事本</template>
       </el-menu-item>
 
+      <el-menu-item index="/calculator">
+        <el-icon><Grid /></el-icon>
+        <template #title>计算器</template>
+      </el-menu-item>
+
       <el-menu-item index="/novel-reader">
         <el-icon><Reading /></el-icon>
         <template #title>小说阅读</template>
@@ -86,6 +91,7 @@ import {
   Connection,
   DocumentCopy,
   Edit,
+  Grid,
   Reading,
   Setting,
   ChatDotSquare,

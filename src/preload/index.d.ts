@@ -5,11 +5,12 @@ declare global {
     electron: ElectronAPI
     api: {
       db: {
-        addNote: (note: { title: string; content: string }) => Promise<any>
-        updateNote: (note: { id: number; title: string; content: string }) => Promise<any>
-        getNotes: () => Promise<any[]>
-        getNoteById: (id: number) => Promise<any>
-        deleteNote: (id: number) => Promise<boolean>
+        addNote: (note: { title: string; content: string; user_id: number }) => Promise<any>
+        updateNote: (note: { id: number; title: string; content: string; user_id: number }) => Promise<any>
+        getNotes: (userId: number) => Promise<any[]>
+        getNoteById: (id: number, userId: number) => Promise<any>
+        deleteNote: (id: number, userId: number) => Promise<boolean>
+        register: (params: any) => Promise<{ success: boolean; message?: string }>
         login: (params: any) => Promise<{ success: boolean; user?: any; message?: string }>
         updateUserInfo: (params: any) => Promise<{ success: boolean; message?: string }>
         updatePassword: (params: any) => Promise<{ success: boolean; message?: string }>

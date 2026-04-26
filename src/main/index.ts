@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -8,10 +8,13 @@ import { setupAllAPIs } from './api'
 log.info('Starting application...')
 
 function createWindow(): void {
+  const { width, height } = screen.getPrimaryDisplay().size
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: Math.floor(width * 0.6),
+    height: Math.floor(height * 0.7),
+    center: true,
     show: false,
     autoHideMenuBar: true,
     titleBarStyle: 'hiddenInset', // 隐藏原生标题栏，Mac 保留交通灯

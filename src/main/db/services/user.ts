@@ -41,6 +41,26 @@ export const initUserService = (db: sqlite3.Database) => {
 
 // 导出用户相关操作
 export const userService = {
+  register: async ({ username, password }: any) => {
+    try {
+      const hashed = hashPassword(password)
+      const now = Date.now()
+      const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+      await run('INSERT INTO users (username, password, avatar, create_time) VALUES (?, ?, ?, ?)', [
+        username,
+        hashed,
+        defaultAvatar,
+        now
+      ])
+      return { success: true }
+    } catch (e: any) {
+      return {
+        success: false,
+        message: e.message.includes('UNIQUE') ? '用户名已存在' : '注册失败'
+      }
+    }
+  },
+
   login: async ({ username, password }: any) => {
     const hashed = hashPassword(password)
     const rows = await all(

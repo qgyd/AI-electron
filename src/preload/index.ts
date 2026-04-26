@@ -4,13 +4,14 @@ import { electronAPI } from '@electron-toolkit/preload'
 // Custom APIs for renderer
 const api = {
   db: {
-    addNote: (note: { title: string; content: string }) => ipcRenderer.invoke('db:addNote', note),
-    updateNote: (note: { id: number; title: string; content: string }) =>
+    addNote: (note: { title: string; content: string; user_id: number }) => ipcRenderer.invoke('db:addNote', note),
+    updateNote: (note: { id: number; title: string; content: string; user_id: number }) =>
       ipcRenderer.invoke('db:updateNote', note),
-    getNotes: () => ipcRenderer.invoke('db:getNotes'),
-    getNoteById: (id: number) => ipcRenderer.invoke('db:getNoteById', id),
-    deleteNote: (id: number) => ipcRenderer.invoke('db:deleteNote', id),
+    getNotes: (userId: number) => ipcRenderer.invoke('db:getNotes', userId),
+    getNoteById: (id: number, userId: number) => ipcRenderer.invoke('db:getNoteById', id, userId),
+    deleteNote: (id: number, userId: number) => ipcRenderer.invoke('db:deleteNote', id, userId),
 
+    register: (params: any) => ipcRenderer.invoke('db:register', params),
     login: (params: any) => ipcRenderer.invoke('db:login', params),
     updateUserInfo: (params: any) => ipcRenderer.invoke('db:updateUserInfo', params),
     updatePassword: (params: any) => ipcRenderer.invoke('db:updatePassword', params)

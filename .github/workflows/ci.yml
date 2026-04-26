@@ -85,10 +85,14 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: false
         shell: bash
         run: |
+          # 必须配置全局 Git 用户以便 Electron-builder 生成 latest.yml 和 blockmap
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
           if [ "$RUNNER_OS" == "Windows" ]; then
-            npx electron-builder --win -p always
+            npx electron-builder --win --publish always
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            npx electron-builder --mac -p always
+            npx electron-builder --mac --publish always
           else
-            npx electron-builder --linux AppImage deb -p always
+            npx electron-builder --linux AppImage deb --publish always
           fi

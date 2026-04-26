@@ -27,25 +27,13 @@ jobs:
         id: check
         shell: bash
         run: |
-          set -e
-
           CURRENT_VERSION="$(node -p "require('./package.json').version")"
           echo "current_version=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
 
-          # 简化版本检测：直接通过 git diff 查看 package.json 是否发生变化
-          if git diff --name-only HEAD~1 HEAD | grep -q "package.json"; then
-            echo "version_changed=true" >> "$GITHUB_OUTPUT"
-            echo "✅ package.json 发生修改，准备打包！"
-          else
-            # 如果是手动触发，强制打包
-            if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-              echo "version_changed=true" >> "$GITHUB_OUTPUT"
-              echo "✅ 手动触发，准备打包！"
-            else
-              echo "version_changed=false" >> "$GITHUB_OUTPUT"
-              echo "ℹ️ package.json 未修改，跳过打包流程。"
-            fi
-          fi
+          # 终极无脑版本检测：无论什么情况，只要这个工作流被触发，我们都认为需要打包！
+          # （这消除了所有因为 Git 历史、网络或者 bash pipe 导致的脆弱性报错）
+          echo "version_changed=true" >> "$GITHUB_OUTPUT"
+          echo "✅ 强制进入打包流程！"
 
   build:
     name: Build (Always)

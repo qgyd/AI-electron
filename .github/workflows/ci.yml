@@ -86,9 +86,9 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
-            npx electron-builder --win --publish always
+            npx electron-builder --win -p always
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            npx electron-builder --mac --publish always
+            npx electron-builder --mac -p always
           else
-            npx electron-builder --linux AppImage deb --publish always
+            npx electron-builder --linux AppImage deb -p always
           fi

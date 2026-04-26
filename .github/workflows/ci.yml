@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Check package.json version
         id: check
@@ -40,60 +42,17 @@ jobs:
           fi
 
   build:
-    name: Build (Always)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # 关键修复：配置 Git 用户名和邮箱，并添加重试机制
-      - name: Setup Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global http.postBuffer 524288000
-          git config --global core.compression 0
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-  package:
-    name: Package (${{ matrix.os }})
-    needs:
-      - check_version
-    if: ${{ needs.check_version.outputs.version_changed == 'true' }}
-    permissions:
-      contents: write # 给 workflow 写 Releases 的权限
-      packages: write
-      pull-requests: read
+    needs: check_version
+    if: needs.check_version.outputs.version_changed == 'true'
     strategy:
-      fail-fast: false
       matrix:
-        os:
-          - windows-latest
-          - macos-latest
-          - ubuntu-latest
+        os: [windows-latest, macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 关键修复：配置 Git 用户名和邮箱，以及大文件支持，防止因为网络问题拉取或推送失败
-      - name: Setup Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global http.postBuffer 524288000
-          git config --global core.compression 0
+
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -107,52 +66,45 @@ jobs:
       - name: Build
         run: npm run build
 
-      # === 提前创建 Release，防止多平台并发上传时因为找不到 Release 而抛出 404 或冲突 ===
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        if: ${{ runner.os == 'Windows' }} # 仅在其中一个环境（比如 Windows）执行一次创建
-        with:
-          tag_name: v${{ needs.check_version.outputs.version }}
-          name: v${{ needs.check_version.outputs.version }}
-          draft: false
-          prerelease: false
+      - name: Package
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Package (Windows)
-        if: ${{ runner.os == 'Windows' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEBUG: electron-builder
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        shell: bash
         run: |
-          npx electron-builder --win --publish always || true
-
-      - name: Package (macOS)
-        if: ${{ runner.os == 'macOS' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEBUG: electron-builder
-        run: |
-          # 移除交叉编译，只打包 Mac 原生格式
-          npx electron-builder --mac -p always || true
-
-      - name: Package (Linux)
-        if: ${{ runner.os == 'Linux' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEBUG: electron-builder
-        run: |
-          npx electron-builder --linux AppImage deb -p always || true
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            npx electron-builder --win --publish never
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            npx electron-builder --mac --publish never
+          else
+            npx electron-builder --linux AppImage deb --publish never
+          fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: mytool-build-${{ runner.os }}
-          path: |
-            dist/*.exe
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.yml
-            dist/*.blockmap
-          if-no-files-found: warn
+          name: dist-${{ runner.os }}
+          path: dist/**
+
+# -------------------------------------------------
+# 3️⃣ 统一发布 Release ⭐
+# -------------------------------------------------
+  release:
+    needs: [check_version, build]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release & Upload
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.check_version.outputs.version }}
+          name: v${{ needs.check_version.outputs.version }}
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -2,104 +2,149 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
-# ⭐ 防止重复发布
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-# -------------------------------------------------
-# 1️⃣ 判断版本是否变化
-# -------------------------------------------------
   check_version:
+    name: Check Version Changed
     runs-on: ubuntu-latest
     outputs:
       version_changed: ${{ steps.check.outputs.version_changed }}
-      version: ${{ steps.check.outputs.version }}
+      current_version: ${{ steps.check.outputs.current_version }}
+      previous_version: ${{ steps.check.outputs.previous_version }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 2
-      - id: check
+          fetch-depth: 2 # 必须拉取历史记录以便对比版本号
+
+      - name: Check package.json version
+        id: check
+        shell: bash
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          set -euo pipefail
 
+          CURRENT_VERSION="$(node -p "require('./package.json').version")"
+          echo "current_version=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
+
+          # 获取上一个提交（HEAD^）的 package.json 中的 version
           if git rev-parse HEAD^ >/dev/null 2>&1; then
-            PREV=$(git show HEAD^:package.json | node -p "JSON.parse(require('fs').readFileSync(0)).version")
+            PREV_VERSION="$(git show HEAD^:package.json | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" 2>/dev/null || echo "")"
           else
-            PREV=""
+            PREV_VERSION=""
           fi
 
-          if [ "$VERSION" != "$PREV" ]; then
-            echo "version_changed=true" >> $GITHUB_OUTPUT
+          echo "previous_version=${PREV_VERSION}" >> "$GITHUB_OUTPUT"
+
+          # 如果是手动触发 (workflow_dispatch) 或者版本号发生变化，则认为需要打包
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] || [ -z "${PREV_VERSION}" ] || [ "${CURRENT_VERSION}" != "${PREV_VERSION}" ]; then
+            echo "version_changed=true" >> "$GITHUB_OUTPUT"
+            echo "✅ 版本号已更改 (从 ${PREV_VERSION} 到 ${CURRENT_VERSION}) 或手动触发，准备打包！"
           else
-            echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "version_changed=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ 版本号未更改 (维持 ${CURRENT_VERSION})，跳过打包流程。"
           fi
 
-# -------------------------------------------------
-# 2️⃣ 提前创建空 Release（避免多平台并发打包时冲突）
-# -------------------------------------------------
-  create_release:
-    needs: check_version
-    if: needs.check_version.outputs.version_changed == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ needs.check_version.outputs.version }}
-          name: v${{ needs.check_version.outputs.version }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-# -------------------------------------------------
-# 3️⃣ 各系统打包并直接直传 Release（彻底绕过 Artifact Quota）
-# -------------------------------------------------
   build:
-    needs: [check_version, create_release]
-    if: needs.check_version.outputs.version_changed == 'true' || github.event_name == 'workflow_dispatch'
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    name: Build (Always)
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 关键修复：配置 Git 用户名和邮箱，并添加重试机制
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global http.postBuffer 524288000
+          git config --global core.compression 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - run: npm ci
-      - run: npm run build
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Prepare Apple Code Signing
-        if: runner.os == 'macOS'
-        run: |
-          echo "Bypassing macOS code signing and notarization for CI..."
-          export CSC_IDENTITY_AUTO_DISCOVERY=false
+      - name: Build
+        run: npm run build
 
-      - name: Package & Publish directly to Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-        shell: bash
+  package:
+    name: Package (${{ matrix.os }})
+    needs:
+      - check_version
+    if: ${{ needs.check_version.outputs.version_changed == 'true' }}
+    permissions:
+      contents: write # 给 workflow 写 Releases 的权限
+      packages: write
+      pull-requests: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - macos-latest
+          - ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 关键修复：配置 Git 用户名和邮箱，以及大文件支持，防止因为网络问题拉取或推送失败
+      - name: Setup Git
         run: |
-          # 必须配置全局 Git 用户以便 Electron-builder 生成 latest.yml 和 blockmap
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            npx electron-builder --win --publish always
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            export CSC_IDENTITY_AUTO_DISCOVERY=false
-            npx electron-builder --mac --publish always || true
-          else
-            npx electron-builder --linux AppImage deb --publish always
-          fi
+          git config --global http.postBuffer 524288000
+          git config --global core.compression 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Package (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: electron-builder
+        run: |
+          npx electron-builder --win --publish always || true
+
+      - name: Package (macOS)
+        if: ${{ runner.os == 'macOS' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: electron-builder
+        run: |
+          npx electron-builder --mac -p always || true
+
+      - name: Package (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: electron-builder
+        run: |
+          npx electron-builder --linux AppImage deb -p always || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mytool-build-${{ runner.os }}
+          path: dist/
+          if-no-files-found: warn

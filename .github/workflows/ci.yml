@@ -104,6 +104,18 @@ jobs:
       - name: Build
         run: npm run build
 
+      # === 提前创建 Release，防止多平台并发上传时因为找不到 Release 而抛出 404 或冲突 ===
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        if: ${{ runner.os == 'Windows' }} # 仅在其中一个环境（比如 Windows）执行一次创建
+        with:
+          tag_name: v${{ needs.check_version.outputs.current_version }}
+          name: v${{ needs.check_version.outputs.current_version }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Package (Windows)
         if: ${{ runner.os == 'Windows' }}
         env:
@@ -133,5 +145,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mytool-build-${{ runner.os }}
-          path: dist/
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.yml
+            dist/*.blockmap
           if-no-files-found: warn

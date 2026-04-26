@@ -16,9 +16,6 @@
           <el-button type="primary" :loading="checkingUpdate" @click="handleCheckUpdate">
             检查更新
           </el-button>
-          <el-button v-if="updateReady" type="success" @click="handleInstallUpdate">
-            <el-icon><Download /></el-icon> 立即重启并安装更新
-          </el-button>
           <el-button @click="openRepo">
             <el-icon><Link /></el-icon> 项目主页
           </el-button>
@@ -67,12 +64,11 @@
 </template>
 
 <script setup lang="ts">
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Monitor, Link, Download } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { Monitor, Link } from '@element-plus/icons-vue'
 
 const systemInfo = ref<any>({})
 const checkingUpdate = ref(false)
-const updateReady = ref(false)
 
 const loadInfo = async () => {
   if (window.api && window.api.about) {
@@ -97,7 +93,7 @@ const handleCheckUpdate = async () => {
       if (result.hasUpdate) {
         ElMessage.success(
           result.message ||
-            `发现新版本: v${result.version}，正在后台静默下载，下载完成后会通知您...`
+            `发现新版本: v${result.version}，正在后台静默下载，下载完成后会在顶部通知您...`
         )
       } else {
         ElMessage.success(result.message || '当前已经是最新版本')
@@ -112,14 +108,6 @@ const handleCheckUpdate = async () => {
   }
 }
 
-const handleInstallUpdate = async () => {
-  try {
-    await window.api.about.installUpdate()
-  } catch (e: any) {
-    ElMessage.error(`请求安装更新失败: ${e.message}`)
-  }
-}
-
 const openRepo = () => {
   if (window.api && window.api.about) {
     window.api.about.openExternal('https://github.com/qgyd/AI-electron')
@@ -128,29 +116,6 @@ const openRepo = () => {
 
 onMounted(() => {
   loadInfo()
-
-  if (window.api && window.api.about) {
-    window.api.about.onUpdateDownloaded(() => {
-      updateReady.value = true
-      ElMessageBox.confirm(
-        '新版本已在后台下载完成。您可以选择立即重启并安装更新，或者稍后在关闭软件时自动安装。',
-        '更新准备就绪',
-        {
-          confirmButtonText: '立即重启并安装',
-          cancelButtonText: '稍后安装',
-          type: 'success',
-          center: true
-        }
-      )
-        .then(() => {
-          handleInstallUpdate()
-        })
-        .catch(() => {
-          // 用户选择稍后，无操作，依赖主进程 app.on('will-quit') 自动安装
-          ElMessage.info('已选择稍后安装。将在您退出软件时自动执行更新。')
-        })
-    })
-  }
 })
 </script>
 

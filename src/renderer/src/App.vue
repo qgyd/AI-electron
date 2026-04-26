@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
-import { ElNotification } from 'element-plus'
+import { onMounted, watch, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import { useSettingsStore } from '@/store/settings'
 import { setPrimaryColor, toggleDarkTheme } from '@/utils/theme'
 
 const settingsStore = useSettingsStore()
+const updateReady = ref(false)
 
 onMounted(() => {
   // 首次进入时，从持久化 Store 中获取配置并应用
@@ -14,6 +15,13 @@ onMounted(() => {
 
   // 启动后台轮询更新检查
   startUpdatePolling()
+
+  // 全局监听更新下载完成事件
+  if (window.api && window.api.about) {
+    window.api.about.onUpdateDownloaded(() => {
+      updateReady.value = true
+    })
+  }
 })
 
 const startUpdatePolling = () => {
@@ -24,17 +32,9 @@ const startUpdatePolling = () => {
   const doCheckUpdate = async () => {
     if (!window.api || !window.api.about) return
     try {
-      const result = await window.api.about.checkForUpdates()
-      // 如果检测到新版本，弹出优雅的通知
-      if (result.success && result.hasUpdate) {
-        ElNotification({
-          title: '发现新版本',
-          message: `新版本 v${result.version} 已准备就绪。您可以前往官网下载，或者等待自动更新。`,
-          type: 'success',
-          duration: 0, // 不自动关闭，等待用户看到
-          position: 'bottom-right'
-        })
-      }
+      await window.api.about.checkForUpdates()
+      // 这里不再弹出 Notification，改为完全后台静默下载
+      // 下载完成后会触发 onUpdateDownloaded 显示顶部提示条
     } catch (e) {
       console.error('后台轮询更新失败:', e)
     }
@@ -49,6 +49,14 @@ const startUpdatePolling = () => {
     },
     5 * 60 * 1000
   )
+}
+
+const handleInstallUpdate = async () => {
+  try {
+    await window.api.about.installUpdate()
+  } catch (e: any) {
+    ElMessage.error(`请求安装更新失败: ${e.message}`)
+  }
 }
 
 // 监听系统名称变动，同步修改窗口标题
@@ -78,6 +86,23 @@ watch(
 
 <template>
   <div class="custom-titlebar"></div>
+  <!-- 无感更新：顶部提示条 -->
+  <div v-if="updateReady" class="global-update-banner">
+    <el-alert
+      title="新版本已在后台下载完成"
+      type="success"
+      show-icon
+      :closable="true"
+      @close="updateReady = false"
+    >
+      <template #default>
+        <div class="update-actions">
+          <span>您可以选择立即重启并安装更新，或者稍后在关闭软件时自动安装。</span>
+          <el-button size="small" type="primary" @click="handleInstallUpdate">立即重启并安装</el-button>
+        </div>
+      </template>
+    </el-alert>
+  </div>
   <router-view></router-view>
 </template>
 
@@ -94,6 +119,17 @@ watch(
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid var(--el-border-color-light);
+}
+
+.global-update-banner {
+  flex-shrink: 0;
+}
+
+.global-update-banner .update-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
 }
 
 /* 调整全局根节点，防止出现滚动条 */

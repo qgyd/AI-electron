@@ -1,5 +1,5 @@
 appId: toolapi.mytool
-productName: 工具助手
+productName: mytool
 directories:
   buildResources: build
   output: dist/${platform}

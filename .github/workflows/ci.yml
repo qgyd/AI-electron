@@ -21,7 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2 # 必须拉取历史记录以便对比版本号
+          fetch-depth: 0 # 必须拉取完整的历史记录以便对比版本号，fetch-depth: 2 容易因为多文件 commit 导致找不到上一个版本
 
       - name: Check package.json version
         id: check
@@ -33,8 +33,8 @@ jobs:
           echo "current_version=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
 
           # 获取上一个提交（HEAD^）的 package.json 中的 version
-          if git rev-parse HEAD^ >/dev/null 2>&1; then
-            PREV_VERSION="$(git show HEAD^:package.json | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" 2>/dev/null || echo "")"
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            PREV_VERSION="$(git show HEAD~1:package.json | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" 2>/dev/null || echo "")"
           else
             PREV_VERSION=""
           fi
@@ -132,6 +132,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: electron-builder
         run: |
+          # 移除交叉编译，只打包 Mac 原生格式
           npx electron-builder --mac -p always || true
 
       - name: Package (Linux)

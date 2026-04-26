@@ -33,7 +33,7 @@ export function setupAboutIPC() {
 
   ipcHandleWithLog('about:getSystemInfo', async () => {
     return {
-      appName: 'MyTool', // 使用自定义名字或者 app.getName()
+      appName: '工具助手', // 将前端关于页面的显示名称改回工具助手
       appVersion: app.getVersion(),
       osType: os.type(),
       osRelease: os.release(),

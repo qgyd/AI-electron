@@ -63,7 +63,7 @@ const handleInstallUpdate = async () => {
 watch(
   () => settingsStore.sysName,
   (newName) => {
-    document.title = newName || 'My Tool'
+    document.title = newName || '工具助手'
   }
 )
 

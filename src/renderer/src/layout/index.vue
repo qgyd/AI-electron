@@ -211,7 +211,7 @@ const handleCommand = (command: string): void => {
 
     .main-content-wrapper {
       padding: 24px;
-      min-height: 100%;
+      height: 87vh;
       box-sizing: border-box;
 
       /* 全局隐藏原生滚动条的类，以防万一 */

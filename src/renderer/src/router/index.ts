@@ -72,13 +72,40 @@ const routes = [
         }
       },
       {
-        path: 'notepad',
-        name: 'Notepad',
-        component: () => import('@/views/Notepad/index.vue'),
+        path: 'notes',
+        name: 'Notes',
+        component: () => import('@/views/Notes/index.vue'),
+        redirect: '/notes/library',
         meta: {
-          title: '本地记事本',
+          title: '笔记',
           icon: 'Edit'
-        }
+        },
+        children: [
+          {
+            path: 'library',
+            name: 'NoteLibrary',
+            component: () => import('@/views/Notes/NoteLibrary/index.vue'),
+            meta: {
+              title: '笔记库'
+            }
+          },
+          {
+            path: 'text',
+            name: 'LocalNote',
+            component: () => import('@/views/Notes/LocalNote/index.vue'),
+            meta: {
+              title: '本地笔记'
+            }
+          },
+          {
+            path: 'canvas',
+            name: 'CanvasNote',
+            component: () => import('@/views/Notes/CanvasNote/index.vue'),
+            meta: {
+              title: '画板笔记'
+            }
+          }
+        ]
       },
       {
         path: 'calculator',

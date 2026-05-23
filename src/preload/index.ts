@@ -4,10 +4,10 @@ import { electronAPI } from '@electron-toolkit/preload'
 // Custom APIs for renderer
 const api = {
   db: {
-    addNote: (note: { title: string; content: string; user_id: number }) => ipcRenderer.invoke('db:addNote', note),
-    updateNote: (note: { id: number; title: string; content: string; user_id: number }) =>
+    addNote: (note: { title: string; content: string; type?: string; user_id: number }) => ipcRenderer.invoke('db:addNote', note),
+    updateNote: (note: { id: number; title: string; content: string; type?: string; user_id: number }) =>
       ipcRenderer.invoke('db:updateNote', note),
-    getNotes: (userId: number) => ipcRenderer.invoke('db:getNotes', userId),
+    getNotes: (userId: number, type?: string) => ipcRenderer.invoke('db:getNotes', userId, type),
     getNoteById: (id: number, userId: number) => ipcRenderer.invoke('db:getNoteById', id, userId),
     deleteNote: (id: number, userId: number) => ipcRenderer.invoke('db:deleteNote', id, userId),
 

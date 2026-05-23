@@ -39,10 +39,21 @@
         </el-menu-item>
       </el-sub-menu>
 
-      <el-menu-item index="/notepad">
-        <el-icon><Edit /></el-icon>
-        <template #title>本地记事本</template>
-      </el-menu-item>
+      <el-sub-menu index="/notes">
+        <template #title>
+          <el-icon><Edit /></el-icon>
+          <span>笔记</span>
+        </template>
+        <el-menu-item index="/notes/library">
+          <template #title>笔记库</template>
+        </el-menu-item>
+        <el-menu-item index="/notes/text">
+          <template #title>本地笔记</template>
+        </el-menu-item>
+        <el-menu-item index="/notes/canvas">
+          <template #title>画板笔记</template>
+        </el-menu-item>
+      </el-sub-menu>
 
       <el-menu-item index="/calculator">
         <el-icon><Grid /></el-icon>
@@ -107,7 +118,13 @@ const route = useRoute()
 const settingsStore = useSettingsStore()
 
 // 根据当前路由路径高亮菜单项
-const activeMenu = computed(() => route.path)
+const activeMenu = computed(() => {
+  // 处理笔记的子路由
+  if (route.path.startsWith('/notes')) {
+    return route.path
+  }
+  return route.path
+})
 </script>
 
 <style scoped lang="scss">

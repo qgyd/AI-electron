@@ -67,7 +67,7 @@ const loginForm = reactive({
   confirmPassword: ''
 })
 
-const validateConfirmPassword = (rule: any, value: any, callback: any) => {
+const validateConfirmPassword = (_: any, value: any, callback: any) => {
   if (isRegister.value) {
     if (value === '') {
       callback(new Error('请再次输入密码'))

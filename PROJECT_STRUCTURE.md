@@ -7,7 +7,7 @@
 
 - **项目名称**: mytool
 - **当前版本**: 1.0.52
-- **技术栈**: Electron 39, Vue 3, TypeScript, Vite, Element Plus, Pinia, Vue Router
+- **技术栈**: Electron 39, Vue 3, TypeScript, Vite, Element Plus, Pinia, Vue Router, Excalidraw
 
 ---
 
@@ -42,7 +42,7 @@ MyTool/
 │   │   │   └── ipc.ts          # IPC 通信
 │   │   ├── db/                 # 数据库模块
 │   │   │   ├── services/       # 数据服务
-│   │   │   │   ├── note.ts     # 记事本服务
+│   │   │   │   ├── note.ts     # 笔记服务（支持 text/canvas 类型）
 │   │   │   │   └── user.ts     # 用户服务
 │   │   │   └── index.ts        # 数据库入口
 │   │   ├── wechat-watch/       # 微信监控模块
@@ -99,7 +99,15 @@ MyTool/
 │       │   │   ├── FormatConvert/     # 格式转换
 │       │   │   ├── ImageConvert/      # 图片转换
 │       │   │   ├── Login/             # 登录页
-│       │   │   ├── Notepad/           # 本地记事本
+│       │   │   ├── Notepad/           # 本地记事本（已废弃，请使用 Notes）
+│       │   │   ├── Notes/              # 笔记中心（父路由）
+│       │   │   │   ├── index.vue       # 笔记主布局
+│       │   │   │   ├── LocalNote/      # 本地笔记
+│       │   │   │   │   └── index.vue
+│       │   │   │   ├── CanvasNote/      # 画板笔记（Excalidraw）
+│       │   │   │   │   └── index.vue
+│       │   │   │   └── NoteLibrary/     # 笔记库
+│       │   │   │       └── index.vue
 │       │   │   ├── NovelReader/       # 小说阅读器
 │       │   │   ├── Profile/           # 个人中心
 │       │   │   ├── QQChat/            # QQ 聊天
@@ -138,7 +146,7 @@ MyTool/
 |----------|---------|
 | [index.ts](file:///Users/tph/Desktop/tool/MyTool/src/main/index.ts) | 主进程入口，负责创建和管理应用窗口 |
 | [api/ipc.ts](file:///Users/tph/Desktop/tool/MyTool/src/main/api/ipc.ts) | IPC 通信处理，主进程与渲染进程交互 |
-| [db/](file:///Users/tph/Desktop/tool/MyTool/src/main/db) | SQLite 数据库相关，包含用户和记事本数据服务 |
+| [db/](file:///Users/tph/Desktop/tool/MyTool/src/main/db) | SQLite 数据库相关，包含用户和笔记数据服务 |
 | [wechat-watch/](file:///Users/tph/Desktop/tool/MyTool/src/main/wechat-watch) | 微信监控模块，支持 macOS 和 Windows |
 | [media.ts](file:///Users/tph/Desktop/tool/MyTool/src/main/media.ts) | 音视频处理，使用 FFmpeg |
 | [upload.ts](file:///Users/tph/Desktop/tool/MyTool/src/main/upload.ts) | 文件上传模块 |
@@ -163,13 +171,35 @@ MyTool/
 | **FileUpload** | 云端文件上传 |
 | **FormatConvert** | 通用格式转换 |
 | **ImageConvert** | 图片格式转换 (PNG/JPEG/WEBP/BMP/ICO) |
-| **Notepad** | 本地记事本，富文本编辑 |
+| **Notepad** | 本地记事本（已废弃，请使用 Notes） |
+| **Notes** | 笔记中心（父路由） |
+| ├── LocalNote | 本地笔记，富文本编辑 |
+| ├── CanvasNote | 画板笔记，基于 Excalidraw |
+| └── NoteLibrary | 笔记库，统一管理所有笔记 |
 | **NovelReader** | 小说阅读器 |
 | **VideoConvert** | 视频转换与裁剪 |
 | **WechatAssistant** | 微信助手 |
 | **Login/Profile/Settings** | 用户系统与设置 |
 
-#### 3.2 状态管理 ([store](file:///Users/tph/Desktop/tool/MyTool/src/renderer/src/store))
+#### 3.2 笔记模块详细说明 ([Notes](file:///Users/tph/Desktop/tool/MyTool/src/renderer/src/views/Notes))
+
+```
+Notes/
+├── index.vue           # 笔记主布局，顶部导航切换
+├── LocalNote/          # 本地笔记
+│   └── index.vue       # 富文本编辑器，使用 WangEditor
+├── CanvasNote/         # 画板笔记
+│   └── index.vue       # Excalidraw 画板，通过 Veaury 集成 React 组件
+└── NoteLibrary/        # 笔记库
+    └── index.vue       # 统一查看管理所有笔记
+```
+
+**路由配置**:
+- `/notes/library` - 笔记库
+- `/notes/text` - 本地笔记
+- `/notes/canvas` - 画板笔记
+
+#### 3.3 状态管理 ([store](file:///Users/tph/Desktop/tool/MyTool/src/renderer/src/store))
 
 使用 Pinia 进行状态管理：
 - [user.ts](file:///Users/tph/Desktop/tool/MyTool/src/renderer/src/store/user.ts) - 用户状态
@@ -207,6 +237,8 @@ MyTool/
 - **Axios** ^1.15.0 - HTTP 请求
 - **Socket.IO** ^4.7.5 - WebSocket 通信
 - **WangEditor** ^5.1.23 - 富文本编辑器
+- **@excalidraw/excalidraw** - 画板/白板绘图工具
+- **veaury** - Vue 与 React 组件互操作，用于集成 Excalidraw
 
 ### 开发工具
 
@@ -243,4 +275,3 @@ MyTool/
 | [tsconfig.web.json](file:///Users/tph/Desktop/tool/MyTool/tsconfig.web.json) | Web 环境 TypeScript 配置 |
 | [eslint.config.mjs](file:///Users/tph/Desktop/tool/MyTool/eslint.config.mjs) | ESLint 配置 |
 | [.prettierrc.yaml](file:///Users/tph/Desktop/tool/MyTool/.prettierrc.yaml) | Prettier 格式化配置 |
-

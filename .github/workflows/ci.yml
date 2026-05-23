@@ -52,7 +52,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ✅ 固定 Python 3.11 解决 distutils 缺失（核心修复）
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
+      # ✅ 安装 setuptools 提供 distutils
+      - name: Install setuptools
+        run: pip install setuptools
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -97,16 +105,11 @@ jobs:
             !dist/**/builder-debug.yml
             !dist/**/builder-effective-config.yaml
 
-# -------------------------------------------------
-# 3️⃣ 统一发布 Release ⭐
-# -------------------------------------------------
   release:
     needs: [check_version, build]
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
-
     steps:
       - uses: actions/download-artifact@v4
         with:

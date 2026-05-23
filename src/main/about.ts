@@ -3,6 +3,7 @@ import { autoUpdater } from 'electron-updater'
 import os from 'os'
 import { ipcHandleWithLog } from './api/ipc'
 import log from './logger'
+import { createAutoUpdateScheduler } from './update-scheduler'
 
 export function setupAboutIPC() {
   // 配置日志输出，方便排查更新问题
@@ -11,6 +12,44 @@ export function setupAboutIPC() {
   autoUpdater.autoDownload = true
 
   let updateDownloaded = false
+  let hasNotifiedUpdateAvailable = false
+
+  const sendToAllWindows = (channel: string, payload?: string) => {
+    BrowserWindow.getAllWindows().forEach((win) => {
+      win.webContents.send(channel, payload)
+    })
+  }
+
+  const performUpdateCheck = async ({ notifyRenderer = false } = {}) => {
+    try {
+      if (!app.isPackaged) {
+        return { success: false, message: '开发环境不支持检查更新，请打包后测试' }
+      }
+
+      const result = await autoUpdater.checkForUpdates()
+      const version = result?.updateInfo?.version
+      const hasUpdate = Boolean(version && version !== app.getVersion())
+
+      if (hasUpdate && notifyRenderer && !hasNotifiedUpdateAvailable) {
+        hasNotifiedUpdateAvailable = true
+        sendToAllWindows('about:update-available', version)
+      }
+
+      if (hasUpdate) {
+        return {
+          success: true,
+          hasUpdate: true,
+          version,
+          message: '发现新版本，正在后台下载，下载完成后将自动重启安装'
+        }
+      }
+
+      return { success: true, hasUpdate: false, message: '当前已经是最新版本' }
+    } catch (e: any) {
+      log.error('Check update failed:', e)
+      return { success: false, message: e.message || String(e) }
+    }
+  }
 
   // 监听下载完成事件，通知渲染进程
   autoUpdater.on('update-downloaded', () => {
@@ -18,9 +57,7 @@ export function setupAboutIPC() {
     updateDownloaded = true
 
     // 通知所有窗口更新已下载完毕
-    BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send('about:update-downloaded')
-    })
+    sendToAllWindows('about:update-downloaded')
   })
 
   // 当应用准备退出时，如果有更新，静默安装
@@ -30,6 +67,16 @@ export function setupAboutIPC() {
       autoUpdater.quitAndInstall(true, true)
     }
   })
+
+  createAutoUpdateScheduler({
+    isPackaged: app.isPackaged,
+    runCheck: async () => {
+      const result = await performUpdateCheck({ notifyRenderer: true })
+      if (!result.success) {
+        log.warn('自动检查更新失败:', result.message)
+      }
+    }
+  }).start()
 
   ipcHandleWithLog('about:getSystemInfo', async () => {
     return {
@@ -52,25 +99,7 @@ export function setupAboutIPC() {
   })
 
   ipcHandleWithLog('about:checkForUpdates', async () => {
-    try {
-      if (!app.isPackaged) {
-        return { success: false, message: '开发环境不支持检查更新，请打包后测试' }
-      }
-
-      const result = await autoUpdater.checkForUpdates()
-      if (result && result.updateInfo && result.updateInfo.version !== app.getVersion()) {
-        return {
-          success: true,
-          hasUpdate: true,
-          version: result.updateInfo.version,
-          message: '发现新版本，正在后台下载，下载完成后将自动重启安装'
-        }
-      }
-      return { success: true, hasUpdate: false, message: '当前已经是最新版本' }
-    } catch (e: any) {
-      log.error('Check update failed:', e)
-      return { success: false, message: e.message || String(e) }
-    }
+    return performUpdateCheck()
   })
 
   ipcHandleWithLog('about:installUpdate', async () => {

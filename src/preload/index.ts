@@ -4,9 +4,15 @@ import { electronAPI } from '@electron-toolkit/preload'
 // Custom APIs for renderer
 const api = {
   db: {
-    addNote: (note: { title: string; content: string; type?: string; user_id: number }) => ipcRenderer.invoke('db:addNote', note),
-    updateNote: (note: { id: number; title: string; content: string; type?: string; user_id: number }) =>
-      ipcRenderer.invoke('db:updateNote', note),
+    addNote: (note: { title: string; content: string; type?: string; user_id: number }) =>
+      ipcRenderer.invoke('db:addNote', note),
+    updateNote: (note: {
+      id: number
+      title: string
+      content: string
+      type?: string
+      user_id: number
+    }) => ipcRenderer.invoke('db:updateNote', note),
     getNotes: (userId: number, type?: string) => ipcRenderer.invoke('db:getNotes', userId, type),
     getNoteById: (id: number, userId: number) => ipcRenderer.invoke('db:getNoteById', id, userId),
     deleteNote: (id: number, userId: number) => ipcRenderer.invoke('db:deleteNote', id, userId),
@@ -67,6 +73,10 @@ const api = {
     openExternal: (url: string) => ipcRenderer.invoke('about:openExternal', url),
     checkForUpdates: () => ipcRenderer.invoke('about:checkForUpdates'),
     installUpdate: () => ipcRenderer.invoke('about:installUpdate'),
+    onUpdateAvailable: (callback: (version?: string) => void) => {
+      ipcRenderer.removeAllListeners('about:update-available')
+      ipcRenderer.on('about:update-available', (_event, version) => callback(version))
+    },
     onUpdateDownloaded: (callback: () => void) => {
       ipcRenderer.removeAllListeners('about:update-downloaded')
       ipcRenderer.on('about:update-downloaded', () => callback())

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, watch, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useSettingsStore } from '@/store/settings'
 import { setPrimaryColor, toggleDarkTheme } from '@/utils/theme'
 
@@ -13,43 +13,24 @@ onMounted(() => {
   toggleDarkTheme(settingsStore.darkMode)
   document.title = settingsStore.sysName
 
-  // 启动后台轮询更新检查
-  startUpdatePolling()
-
   // 全局监听更新下载完成事件
-  if (window.api && window.api.about) {
+  if (window.api?.about) {
+    window.api.about.onUpdateAvailable((version) => {
+      void ElMessageBox.alert(
+        `检测到${version ? ` v${version}` : ''}新版本，已开始后台下载。下载完成后会再次提示您安装更新。`,
+        '发现新版本',
+        {
+          confirmButtonText: '知道了',
+          type: 'info'
+        }
+      )
+    })
+
     window.api.about.onUpdateDownloaded(() => {
       updateReady.value = true
     })
   }
 })
-
-const startUpdatePolling = () => {
-  // 每隔 1 小时 (3600000 毫秒) 检查一次更新
-  const ONE_HOUR = 60 * 60 * 1000
-
-  // 封装检查更新的逻辑
-  const doCheckUpdate = async () => {
-    if (!window.api || !window.api.about) return
-    try {
-      await window.api.about.checkForUpdates()
-      // 这里不再弹出 Notification，改为完全后台静默下载
-      // 下载完成后会触发 onUpdateDownloaded 显示顶部提示条
-    } catch (e) {
-      console.error('后台轮询更新失败:', e)
-    }
-  }
-
-  // 初次启动后延迟 5 分钟做一次检查，避免刚打开就卡顿
-  setTimeout(
-    () => {
-      doCheckUpdate()
-      // 之后每小时循环检查
-      setInterval(doCheckUpdate, ONE_HOUR)
-    },
-    5 * 60 * 1000
-  )
-}
 
 const handleInstallUpdate = async () => {
   try {
@@ -98,7 +79,9 @@ watch(
       <template #default>
         <div class="update-actions">
           <span>您可以选择立即重启并安装更新，或者稍后在关闭软件时自动安装。</span>
-          <el-button size="small" type="primary" @click="handleInstallUpdate">立即重启并安装</el-button>
+          <el-button size="small" type="primary" @click="handleInstallUpdate">
+            立即重启并安装
+          </el-button>
         </div>
       </template>
     </el-alert>

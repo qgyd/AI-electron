@@ -5,8 +5,19 @@ declare global {
     electron: ElectronAPI
     api: {
       db: {
-        addNote: (note: { title: string; content: string; type?: string; user_id: number }) => Promise<any>
-        updateNote: (note: { id: number; title: string; content: string; type?: string; user_id: number }) => Promise<any>
+        addNote: (note: {
+          title: string
+          content: string
+          type?: string
+          user_id: number
+        }) => Promise<any>
+        updateNote: (note: {
+          id: number
+          title: string
+          content: string
+          type?: string
+          user_id: number
+        }) => Promise<any>
         getNotes: (userId: number, type?: string) => Promise<any[]>
         getNoteById: (id: number, userId: number) => Promise<any>
         deleteNote: (id: number, userId: number) => Promise<boolean>
@@ -59,6 +70,7 @@ declare global {
           message?: string
         }>
         installUpdate: () => Promise<{ success: boolean; message?: string }>
+        onUpdateAvailable: (callback: (version?: string) => void) => void
         onUpdateDownloaded: (callback: () => void) => void
       }
     }

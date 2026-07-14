@@ -52,23 +52,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ✅ 修复 Windows 上 node-gyp 找不到 Visual Studio 的问题
-      - name: Install VSSetup PowerShell module (Windows only)
+      # ✅ 核心修复：强制 node-gyp 识别 VS2022（仅 Windows）
+      - name: Configure VS2022 for node-gyp (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: Install-Module VSSetup -Scope CurrentUser -Force
+        run: |
+          $vsPath = "C:\Program Files\Microsoft Visual Studio\2022\Community"
+          if (Test-Path $vsPath) {
+            $msvcDir = Join-Path $vsPath "VC\Tools\MSVC"
+            $ver = (Get-ChildItem $msvcDir | Sort-Object Name -Descending | Select-Object -First 1).Name
 
-      # ✅ 固定 Python 3.11 解决 distutils 缺失
+            # 注入关键环境变量
+            "VCToolsInstallDir=$msvcDir\$ver" >> $env:GITHUB_ENV
+            "VCToolsVersion=$ver" >> $env:GITHUB_ENV
+            "WindowsSdkDir=C:\Program Files (x86)\Windows Kits\10" >> $env:GITHUB_ENV
+
+            # 全局设置 msvs_version
+            npm config set msvs_version 2022 --global
+            Write-Host "✅ Configured VS2022 MSVC v$ver"
+          } else {
+            Write-Error "VS2022 Community not found at expected path!"
+            exit 1
+          }
+
+      # ✅ 固定 Python 3.11 + setuptools 解决 distutils 缺失
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # ✅ 安装 setuptools 提供 distutils
       - name: Install setuptools
         run: pip install setuptools
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20

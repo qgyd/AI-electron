@@ -70,6 +70,8 @@ jobs:
 
       - name: Install dependencies
         shell: bash
+        env:
+          ELECTRON_BUILDER_SKIP_POSTINSTALL: true
         run: |
           sed -i.bak 's/registry.npmmirror.com/registry.npmjs.org/g' package-lock.json || true
           npm ci

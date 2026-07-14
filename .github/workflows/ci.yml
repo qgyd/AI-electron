@@ -37,6 +37,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Node
+
+        uses: actions/setup-node@v4
+
+        with:
+          node-version: 20
+
       - name: Check version
 
         id: check
@@ -180,9 +187,8 @@ jobs:
         uses: actions/cache@v4
 
         with:
-          path: ~/.cache/electron
-
-
+          path: |
+            ~/.cache/electron
             ~/.cache/electron-builder
 
           key: electron-${{ runner.os }}
@@ -205,14 +211,9 @@ jobs:
       - name: Install dependencies
 
         env:
-          # 防止 electron-builder install-app-deps
-          # 在 npm ci 阶段触发
-
-          ELECTRON_BUILDER_SKIP_INSTALL_APP_DEPS: true
-
           npm_config_msvs_version: 2022
 
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       # -----------------------------
       # Vue构建
@@ -263,24 +264,13 @@ jobs:
         with:
           name: ${{ runner.os }}-dist
 
-          path: dist/**/*.exe
-
-
+          path: |
+            dist/**/*.exe
             dist/**/*.dmg
-
-
             dist/**/*.AppImage
-
-
             dist/**/*.deb
-
-
             dist/**/*.zip
-
-
             dist/**/*.yml
-
-
             dist/**/*.blockmap
 
   # ==================================================
@@ -318,24 +308,13 @@ jobs:
 
           name: v${{ needs.check_version.outputs.version }}
 
-          files: artifacts/**/*.exe
-
-
+          files: |
+            artifacts/**/*.exe
             artifacts/**/*.dmg
-
-
             artifacts/**/*.AppImage
-
-
             artifacts/**/*.deb
-
-
             artifacts/**/*.zip
-
-
             artifacts/**/*.yml
-
-
             artifacts/**/*.blockmap
 
         env:

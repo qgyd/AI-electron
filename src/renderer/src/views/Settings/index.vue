@@ -114,7 +114,7 @@
 
         <el-divider border-style="dashed" />
 
-        <el-form-item>
+        <!-- <el-form-item>
           <template #label>
             <div style="display: flex; flex-direction: column; line-height: 1.5">
               <span>AI 模型 (Model)</span>
@@ -129,9 +129,9 @@
             placeholder="例如: Qwen/Qwen2.5-7B-Instruct"
             class="w-full"
           />
-        </el-form-item>
+        </el-form-item> -->
 
-        <el-divider border-style="dashed" />
+        <!-- <el-divider border-style="dashed" /> -->
 
         <div class="section-title">系统与文件配置</div>
 

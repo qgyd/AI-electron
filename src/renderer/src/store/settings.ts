@@ -13,9 +13,17 @@ export const useSettingsStore = defineStore(
     const outputDir = ref('')
 
     // AI 设置
-    const aiBaseUrl = ref('https://api.siliconflow.cn/v1')
+    const aiBaseUrl = ref('https://apihub.agnes-ai.com')
     const aiApiKey = ref('')
-    const aiModel = ref('Qwen/Qwen2.5-7B-Instruct')
+    const aiModel = ref('agnes-2.0-flash')
+    const aiImageModel = ref('agnes-image-2.1-flash')
+    const aiVideoModel = ref('agnes-video-v2.0')
+    const aiTemperature = ref(0.7)
+    const aiMaxTokens = ref(4096)
+    const aiSystemPrompt = ref('你是一个有帮助的AI助手，请用中文回答。')
+    const aiImageSize = ref('1024x768')
+    const aiVideoNumFrames = ref(121)
+    const aiVideoFrameRate = ref(24)
 
     const resetSettings = () => {
       sysName.value = 'My Tool'
@@ -25,9 +33,17 @@ export const useSettingsStore = defineStore(
       lockTime.value = '30'
       notify.value = true
       outputDir.value = ''
-      aiBaseUrl.value = 'https://api.siliconflow.cn/v1'
+      aiBaseUrl.value = 'https://apihub.agnes-ai.com'
       aiApiKey.value = ''
-      aiModel.value = 'Qwen/Qwen2.5-7B-Instruct'
+      aiModel.value = 'agnes-2.0-flash'
+      aiImageModel.value = 'agnes-image-2.1-flash'
+      aiVideoModel.value = 'agnes-video-v2.0'
+      aiTemperature.value = 0.7
+      aiMaxTokens.value = 4096
+      aiSystemPrompt.value = '你是一个有帮助的AI助手，请用中文回答。'
+      aiImageSize.value = '1024x768'
+      aiVideoNumFrames.value = 121
+      aiVideoFrameRate.value = 24
     }
 
     return {
@@ -41,6 +57,14 @@ export const useSettingsStore = defineStore(
       aiBaseUrl,
       aiApiKey,
       aiModel,
+      aiImageModel,
+      aiVideoModel,
+      aiTemperature,
+      aiMaxTokens,
+      aiSystemPrompt,
+      aiImageSize,
+      aiVideoNumFrames,
+      aiVideoFrameRate,
       resetSettings
     }
   },

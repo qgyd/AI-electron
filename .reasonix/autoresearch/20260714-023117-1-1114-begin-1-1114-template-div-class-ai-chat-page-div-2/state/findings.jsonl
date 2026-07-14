@@ -1,0 +1,1 @@
+{"id":"f1","kind":"file","summary":"ALab page rewritten to match reference: video polling via /agnesapi?video_id=, hardcoded API key, extra_body image param, estimateTokens fallback, media preview dialog, all matching function names","source":"file","paths":["src/renderer/src/views/AI/ALab/index.vue"],"accepted":true,"created_at":"2026-07-14T02:37:06.852858Z"}

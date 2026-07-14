@@ -65,9 +65,9 @@
         <template #title>小说阅读</template>
       </el-menu-item>
 
-      <el-menu-item index="/ai-chat">
-        <el-icon><ChatDotSquare /></el-icon>
-        <template #title>AI 智能助手</template>
+      <el-menu-item index="/ai">
+        <el-icon><Cpu /></el-icon>
+        <template #title>AI 实验室</template>
       </el-menu-item>
 
       <!-- <el-menu-item index="/qq-chat">
@@ -105,7 +105,7 @@ import {
   Grid,
   Reading,
   Setting,
-  ChatDotSquare,
+  Cpu,
   InfoFilled
 } from '@element-plus/icons-vue'
 
@@ -119,10 +119,6 @@ const settingsStore = useSettingsStore()
 
 // 根据当前路由路径高亮菜单项
 const activeMenu = computed(() => {
-  // 处理笔记的子路由
-  if (route.path.startsWith('/notes')) {
-    return route.path
-  }
   return route.path
 })
 </script>

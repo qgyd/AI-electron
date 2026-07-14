@@ -53,11 +53,10 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 nodeGypRebuild: false
+buildDependenciesFromSource: false
 publish:
   provider: github
   owner: qgyd
   repo: AI-electron
-npmRebuild: false
-buildDependenciesFromSource: false
 # electronDownload:
 #   mirror: https://npmmirror.com/mirrors/electron/

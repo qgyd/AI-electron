@@ -52,48 +52,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 动态检测最新 Visual Studio（仅 Windows）
-      - name: Configure Visual Studio for node-gyp (Windows)
+      # 🟢 使用官方 Action 配置 MSVC 编译环境（Windows）
+      - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $vswhere = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
-          if (-not (Test-Path $vswhere)) {
-            Write-Error "❌ vswhere.exe not found at expected path"
-            exit 1
-          }
-
-          # 使用 vswhere 查找最新安装的 VS
-          $vsPath = & $vswhere -latest -products * -property installationPath
-          if (-not $vsPath) {
-            Write-Error "❌ No Visual Studio installation found via vswhere"
-            exit 1
-          }
-
-          $vsVersion = & $vswhere -latest -property installationVersion
-
-          # 从路径提取 VS 年份（如 "...\2022\Community" → "2022"）
-          if ($vsPath -match '\\(\d{4})\\') {
-            $vsYear = $matches[1]
-          } else {
-            Write-Error "❌ Could not determine VS version year from path: $vsPath"
-            exit 1
-          }
-
-          # 获取最新 MSVC 工具版本
-          $msvcDir = Join-Path $vsPath "VC\Tools\MSVC"
-          if (-not (Test-Path $msvcDir)) {
-            Write-Error "❌ MSVC tools not found at: $msvcDir"
-            exit 1
-          }
-          $msvcVer = (Get-ChildItem $msvcDir | Sort-Object Name -Descending | Select-Object -First 1).Name
-
-          # 告知 node-gyp 使用检测到的 VS 版本
-          npm config set msvs_version $vsYear --global
-
-          Write-Host "✅ Found VS at: $vsPath"
-          Write-Host "✅ VS version: $vsVersion (year: $vsYear)"
-          Write-Host "✅ Using MSVC v$msvcVer"
+        uses: ilammy/msvc-dev-cmd@v1
 
       # ✅ 固定 Python 3.11 + setuptools 解决 distutils 缺失
       - name: Setup Python 3.11

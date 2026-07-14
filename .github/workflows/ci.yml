@@ -4,57 +4,43 @@ on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
-
   workflow_dispatch:
 
-env:
-  ELECTRON_MIRROR: https://npmmirror.com/mirrors/electron/
-
-  ELECTRON_BUILDER_BINARIES_MIRROR: https://npmmirror.com/mirrors/electron-builder-binaries/
+# 防止同时多个 run 互相干扰
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # ==================================================
   # 检查 package.json version 是否变化
   # ==================================================
-
   check_version:
     runs-on: ubuntu-22.04
-
     outputs:
       version_changed: ${{ steps.check.outputs.version_changed }}
-
       version: ${{ steps.check.outputs.version }}
-
     steps:
       - name: Checkout
-
         uses: actions/checkout@v4
-
         with:
-          fetch-depth: 0
+          fetch-depth: 2
 
       - name: Setup Node
-
         uses: actions/setup-node@v4
-
         with:
-          node-version: 24
+          node-version: 22
 
       - name: Check version
-
         id: check
-
         shell: bash
-
         run: |
           NEW_VERSION=$(node -p "require('./package.json').version")
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-          # 第一次提交
           if ! git rev-parse HEAD^ >/dev/null 2>&1; then
             echo "version_changed=true" >> $GITHUB_OUTPUT
             exit 0
@@ -73,139 +59,63 @@ jobs:
   # ==================================================
   # 三平台构建
   # ==================================================
-
   build:
     needs: check_version
-
     if: needs.check_version.outputs.version_changed == 'true'
-
     strategy:
       matrix:
         os:
           - windows-2022
-
           - macos-latest
-
           - ubuntu-22.04
-
     runs-on: ${{ matrix.os }}
-
     steps:
       - name: Checkout
-
         uses: actions/checkout@v4
 
-      # -----------------------------
-      # Python（所有平台通用，node-gyp 后备）
-      # -----------------------------
-
-      - name: Setup Python
-
-        uses: actions/setup-python@v5
-
-        with:
-          python-version: '3.11'
-
-      - name: Install setuptools
-
-        run: pip install setuptools
-
-      # -----------------------------
-      # Node
-      # -----------------------------
-
       - name: Setup Node
-
         uses: actions/setup-node@v4
-
         with:
-          node-version: 20
-
+          node-version: 22
           cache: npm
 
-      # -----------------------------
-      # Electron缓存
-      # -----------------------------
-
-      - name: Cache electron
-
-        uses: actions/cache@v4
-
-        with:
-          path: |
-            ~/.cache/electron
-            ~/.cache/electron-builder
-
-          key: electron-${{ runner.os }}
-
-      # -----------------------------
-      # Linux依赖
-      # -----------------------------
-
+      # Linux 系统依赖
       - name: Install Linux packages
-
         if: runner.os == 'Linux'
-
-        run: sudo apt-get update &&
+        run: |
+          sudo apt-get update
           sudo apt-get install -y rpm fakeroot
 
-      # -----------------------------
-      # 安装依赖
-      # -----------------------------
-
+      # 安装依赖（跳过 postinstall，不需要编译原生模块）
       - name: Install dependencies
-
         run: npm ci --ignore-scripts
 
-      # -----------------------------
-      # Vue构建
-      # -----------------------------
-
+      # Vue/Electron 构建
       - name: Build
-
         run: npm run build
 
-      # -----------------------------
-      # Electron打包
-      # -----------------------------
-
-      - name: Build Windows
-
+      # Electron 打包
+      - name: Package Windows
         if: runner.os == 'Windows'
-
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
-
         run: npx electron-builder --win --publish never
 
-      - name: Build Mac
-
+      - name: Package Mac
         if: runner.os == 'macOS'
-
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
-
         run: npx electron-builder --mac --publish never
 
-      - name: Build Linux
-
+      - name: Package Linux
         if: runner.os == 'Linux'
+        run: npx electron-builder --linux AppImage deb --publish never
 
-        run: npx electron-builder \
-          --linux AppImage deb \
-          --publish never
-
-      # -----------------------------
       # 上传产物
-      # -----------------------------
-
       - name: Upload
-
         uses: actions/upload-artifact@v4
-
         with:
           name: ${{ runner.os }}-dist
-
           path: |
             dist/**/*.exe
             dist/**/*.dmg
@@ -218,38 +128,25 @@ jobs:
   # ==================================================
   # 发布 Release
   # ==================================================
-
   release:
     needs:
       - check_version
-
       - build
-
-    if: github.event_name != 'pull_request' &&
-      needs.check_version.outputs.version_changed == 'true'
-
+    if: github.event_name != 'pull_request' && needs.check_version.outputs.version_changed == 'true'
     runs-on: ubuntu-22.04
-
     permissions:
       contents: write
-
     steps:
       - name: Download artifacts
-
         uses: actions/download-artifact@v4
-
         with:
           path: artifacts
 
       - name: Release
-
         uses: softprops/action-gh-release@v2
-
         with:
           tag_name: v${{ needs.check_version.outputs.version }}
-
           name: v${{ needs.check_version.outputs.version }}
-
           files: |
             artifacts/**/*.exe
             artifacts/**/*.dmg
@@ -258,6 +155,5 @@ jobs:
             artifacts/**/*.zip
             artifacts/**/*.yml
             artifacts/**/*.blockmap
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

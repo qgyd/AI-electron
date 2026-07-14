@@ -52,7 +52,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ✅ 固定 Python 3.11 解决 distutils 缺失（核心修复）
+      # ✅ 修复 Windows 上 node-gyp 找不到 Visual Studio 的问题
+      - name: Install VSSetup PowerShell module (Windows only)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Install-Module VSSetup -Scope CurrentUser -Force
+
+      # ✅ 固定 Python 3.11 解决 distutils 缺失
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:

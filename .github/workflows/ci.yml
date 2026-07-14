@@ -52,46 +52,48 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ✅ 核心修复：精准定位 VS2022 并注入环境变量（仅 Windows）
-      - name: Configure VS2022 for node-gyp (Windows)
+      # 动态检测最新 Visual Studio（仅 Windows）
+      - name: Configure Visual Studio for node-gyp (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # GitHub Actions windows-latest 实际路径在 (x86) 下，同时兼容标准路径
-          $vsPaths = @(
-            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Community",
-            "C:\Program Files\Microsoft Visual Studio\2022\Community",
-            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise",
-            "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
-          )
-
-          $found = $false
-          foreach ($path in $vsPaths) {
-            $msvcDir = Join-Path $path "VC\Tools\MSVC"
-            if (Test-Path $msvcDir) {
-              $ver = (Get-ChildItem $msvcDir | Sort-Object Name -Descending | Select-Object -First 1).Name
-
-              # 持久化环境变量到后续所有步骤
-              "VCToolsInstallDir=$msvcDir\$ver" >> $env:GITHUB_ENV
-              "VCToolsVersion=$ver" >> $env:GITHUB_ENV
-              "WindowsSdkDir=C:\Program Files (x86)\Windows Kits\10" >> $env:GITHUB_ENV
-
-              # 全局告知 node-gyp 使用 VS2022
-              npm config set msvs_version 2022 --global
-
-              Write-Host "✅ Found VS2022 at: $path"
-              Write-Host "✅ Using MSVC v$ver"
-              $found = $true
-              break
-            }
-          }
-
-          if (-not $found) {
-            Write-Error "❌ VS2022 not found! Listing available VS installations:"
-            Get-ChildItem "C:\Program Files*" -Filter "Microsoft Visual Studio" -Recurse -Depth 3 -ErrorAction SilentlyContinue |
-              ForEach-Object { Write-Host "  $($_.FullName)" }
+          $vswhere = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
+          if (-not (Test-Path $vswhere)) {
+            Write-Error "❌ vswhere.exe not found at expected path"
             exit 1
           }
+
+          # 使用 vswhere 查找最新安装的 VS
+          $vsPath = & $vswhere -latest -products * -property installationPath
+          if (-not $vsPath) {
+            Write-Error "❌ No Visual Studio installation found via vswhere"
+            exit 1
+          }
+
+          $vsVersion = & $vswhere -latest -property installationVersion
+
+          # 从路径提取 VS 年份（如 "...\2022\Community" → "2022"）
+          if ($vsPath -match '\\(\d{4})\\') {
+            $vsYear = $matches[1]
+          } else {
+            Write-Error "❌ Could not determine VS version year from path: $vsPath"
+            exit 1
+          }
+
+          # 获取最新 MSVC 工具版本
+          $msvcDir = Join-Path $vsPath "VC\Tools\MSVC"
+          if (-not (Test-Path $msvcDir)) {
+            Write-Error "❌ MSVC tools not found at: $msvcDir"
+            exit 1
+          }
+          $msvcVer = (Get-ChildItem $msvcDir | Sort-Object Name -Descending | Select-Object -First 1).Name
+
+          # 告知 node-gyp 使用检测到的 VS 版本
+          npm config set msvs_version $vsYear --global
+
+          Write-Host "✅ Found VS at: $vsPath"
+          Write-Host "✅ VS version: $vsVersion (year: $vsYear)"
+          Write-Host "✅ Using MSVC v$msvcVer"
 
       # ✅ 固定 Python 3.11 + setuptools 解决 distutils 缺失
       - name: Setup Python 3.11
@@ -149,6 +151,7 @@ jobs:
 
   release:
     needs: [check_version, build]
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: write

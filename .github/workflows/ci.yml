@@ -48,24 +48,23 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Linux deps
-        if: runner.os == 'Linux'
+      - if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y rpm fakeroot
 
       - run: npm ci
 
-      - name: Build & Package
+      - if: runner.os == 'Windows'
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
-        shell: bash
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            npm run build:win -- --publish never
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            npm run build:mac -- --publish never
-          else
-            npm run build:linux -- --publish never
-          fi
+        run: npm run build:win -- --publish never
+
+      - if: runner.os == 'macOS'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npm run build:mac -- --publish never
+
+      - if: runner.os == 'Linux'
+        run: npm run build:linux -- --publish never
 
       - uses: actions/upload-artifact@v4
         with:

@@ -52,26 +52,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ✅ 核心修复：强制 node-gyp 识别 VS2022（仅 Windows）
+      # ✅ 核心修复：精准定位 VS2022 并注入环境变量（仅 Windows）
       - name: Configure VS2022 for node-gyp (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $vsPath = "C:\Program Files\Microsoft Visual Studio\2022\Community"
-          if (Test-Path $vsPath) {
-            $msvcDir = Join-Path $vsPath "VC\Tools\MSVC"
-            $ver = (Get-ChildItem $msvcDir | Sort-Object Name -Descending | Select-Object -First 1).Name
+          # GitHub Actions windows-latest 实际路径在 (x86) 下，同时兼容标准路径
+          $vsPaths = @(
+            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Community",
+            "C:\Program Files\Microsoft Visual Studio\2022\Community",
+            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise",
+            "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+          )
 
-            # 注入关键环境变量
-            "VCToolsInstallDir=$msvcDir\$ver" >> $env:GITHUB_ENV
-            "VCToolsVersion=$ver" >> $env:GITHUB_ENV
-            "WindowsSdkDir=C:\Program Files (x86)\Windows Kits\10" >> $env:GITHUB_ENV
+          $found = $false
+          foreach ($path in $vsPaths) {
+            $msvcDir = Join-Path $path "VC\Tools\MSVC"
+            if (Test-Path $msvcDir) {
+              $ver = (Get-ChildItem $msvcDir | Sort-Object Name -Descending | Select-Object -First 1).Name
 
-            # 全局设置 msvs_version
-            npm config set msvs_version 2022 --global
-            Write-Host "✅ Configured VS2022 MSVC v$ver"
-          } else {
-            Write-Error "VS2022 Community not found at expected path!"
+              # 持久化环境变量到后续所有步骤
+              "VCToolsInstallDir=$msvcDir\$ver" >> $env:GITHUB_ENV
+              "VCToolsVersion=$ver" >> $env:GITHUB_ENV
+              "WindowsSdkDir=C:\Program Files (x86)\Windows Kits\10" >> $env:GITHUB_ENV
+
+              # 全局告知 node-gyp 使用 VS2022
+              npm config set msvs_version 2022 --global
+
+              Write-Host "✅ Found VS2022 at: $path"
+              Write-Host "✅ Using MSVC v$ver"
+              $found = $true
+              break
+            }
+          }
+
+          if (-not $found) {
+            Write-Error "❌ VS2022 not found! Listing available VS installations:"
+            Get-ChildItem "C:\Program Files*" -Filter "Microsoft Visual Studio" -Recurse -Depth 3 -ErrorAction SilentlyContinue |
+              ForEach-Object { Write-Host "  $($_.FullName)" }
             exit 1
           }
 

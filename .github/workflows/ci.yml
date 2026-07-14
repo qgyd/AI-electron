@@ -22,7 +22,7 @@ jobs:
   # ==================================================
 
   check_version:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     outputs:
       version_changed: ${{ steps.check.outputs.version_changed }}
@@ -82,11 +82,11 @@ jobs:
     strategy:
       matrix:
         os:
-          - windows-latest
+          - windows-2022
 
           - macos-latest
 
-          - ubuntu-latest
+          - ubuntu-22.04
 
     runs-on: ${{ matrix.os }}
 
@@ -228,7 +228,7 @@ jobs:
     if: github.event_name != 'pull_request' &&
       needs.check_version.outputs.version_changed == 'true'
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     permissions:
       contents: write

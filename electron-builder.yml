@@ -48,6 +48,7 @@ nsis:
   createStartMenuShortcut: true
   shortcutName: 工具助手
 mac:
+  identity: null
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.

@@ -1,16 +1,38 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useSettingsStore } from '@/store/settings'
+import type { ReaderTheme } from '@/store/settings'
 
-export type ReaderTheme = 'light' | 'sepia' | 'dark'
+// 重新导出类型，保持与组件导入路径兼容
+export type { ReaderTheme }
 
 export function useNovelReader() {
   const content = ref('')
   const title = ref('未命名小说')
   const loading = ref(false)
 
-  // 阅读器设置状态
+  // 阅读器设置状态 — 从持久化 Store 读取
+  const settingsStore = useSettingsStore()
   const fontSize = ref(18)
-  const theme = ref<ReaderTheme>('light')
+  const theme = ref<ReaderTheme>(settingsStore.readerTheme)
+
+  // 当用户手动切换阅读器主题时，持久化到 Store
+  watch(theme, (val) => {
+    settingsStore.readerTheme = val
+  })
+
+  // 同步全局深色模式：当全局 darkMode 开启时，如果阅读器不是 dark 则自动切换
+  watch(
+    () => settingsStore.darkMode,
+    (isDark) => {
+      if (isDark && theme.value !== 'dark') {
+        theme.value = 'dark'
+      } else if (!isDark && theme.value === 'dark') {
+        // 退出深色模式时，恢复到上次保存的主题
+        theme.value = settingsStore.readerTheme === 'dark' ? 'light' : settingsStore.readerTheme
+      }
+    }
+  )
 
   // 本地文件导入 (支持 UTF-8 和 GBK 编码自动识别)
   const loadLocalFile = (file: File) => {

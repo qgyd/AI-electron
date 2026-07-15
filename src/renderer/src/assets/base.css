@@ -21,13 +21,19 @@
   --ev-button-alt-hover-border: transparent;
   --ev-button-alt-hover-text: var(--ev-c-text-1);
   --ev-button-alt-hover-bg: var(--ev-c-gray-2);
+
+  /* 浅色模式（默认） */
+  --color-background: var(--ev-c-white);
+  --color-background-soft: var(--ev-c-white-soft);
+  --color-background-mute: var(--ev-c-white-mute);
+  --color-text: rgba(60, 60, 67, 0.85);
 }
 
-:root {
+/* 深色模式：通过 .dark class 切换（与 Element Plus 深色模式一致） */
+:root.dark {
   --color-background: var(--ev-c-black);
   --color-background-soft: var(--ev-c-black-soft);
   --color-background-mute: var(--ev-c-black-mute);
-
   --color-text: var(--ev-c-text-1);
 }
 
@@ -64,4 +70,6 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* 深色/浅色切换过渡动画 */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }

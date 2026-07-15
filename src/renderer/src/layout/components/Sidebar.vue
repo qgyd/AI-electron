@@ -5,6 +5,7 @@
       <span v-show="!isCollapse">{{ settingsStore.sysName }}</span>
     </div>
     <el-menu
+      :key="settingsStore.theme"
       :default-active="activeMenu"
       class="el-menu-vertical"
       :collapse="isCollapse"

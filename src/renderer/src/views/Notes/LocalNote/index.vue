@@ -279,19 +279,19 @@ watch(
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #7c3aed;
+  background: var(--el-color-primary);
   flex-shrink: 0;
 }
 .left h1 {
   margin: 0;
   font-size: 22px;
   font-weight: 700;
-  color: #1e1b4b;
+  color: var(--el-text-color-primary);
 }
 .left p {
   margin: 0;
   font-size: 13px;
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
 }
 
 .empty {
@@ -301,7 +301,7 @@ watch(
   justify-content: center;
 }
 .empty-txt {
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
   font-size: 14px;
 }
 
@@ -318,15 +318,15 @@ watch(
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  background: #fff;
-  border: 1px solid #f3f4f6;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
 }
 .item:hover {
-  border-color: #d8b4fe;
-  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.08);
+  border-color: var(--el-color-primary-light-5);
+  box-shadow: 0 2px 12px var(--el-color-primary-light-8);
 }
 .item-left {
   display: flex;
@@ -341,14 +341,14 @@ watch(
 .item-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .item-time {
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
   margin-top: 2px;
 }
 .item-del {
@@ -357,7 +357,7 @@ watch(
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: #9ca3af;
+  color: var(--el-text-color-placeholder);
   cursor: pointer;
   font-size: 16px;
   line-height: 1;
@@ -399,7 +399,7 @@ watch(
 .btn-back {
   background: none;
   border: none;
-  color: #6b7280;
+  color: var(--el-text-color-secondary);
   font-size: 13px;
   cursor: pointer;
   padding: 6px 10px;
@@ -407,20 +407,20 @@ watch(
   transition: all 0.2s;
 }
 .btn-back:hover {
-  background: #f3f4f6;
-  color: #1e1b4b;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
 }
 .input-title {
   border: none;
   outline: none;
   font-size: 16px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--el-text-color-primary);
   background: transparent;
   flex: 1;
 }
 .input-title::placeholder {
-  color: #d1d5db;
+  color: var(--el-text-color-placeholder);
 }
 .dot-save {
   width: 8px;
@@ -445,7 +445,7 @@ watch(
 }
 .status {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
 }
 .btn-del {
   background: #fef2f2;
@@ -461,7 +461,7 @@ watch(
   background: #fee2e2;
 }
 .btn-save {
-  background: #7c3aed;
+  background: var(--el-color-primary);
   border: none;
   color: #fff;
   padding: 8px 20px;
@@ -472,7 +472,7 @@ watch(
   transition: all 0.2s;
 }
 .btn-save:hover {
-  background: #6d28d9;
+  background: var(--el-color-primary-light-3);
 }
 .btn-save:disabled {
   opacity: 0.6;

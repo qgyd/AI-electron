@@ -143,7 +143,7 @@ const handleSubmit = async () => {
   justify-content: center;
   align-items: center;
   height: 100%;
-  background-color: #f0f2f5;
+  background-color: var(--el-bg-color-page);
   background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='smallGrid' width='8' height='8' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 8 0 L 0 0 0 8' fill='none' stroke='%23e0e0e0' stroke-width='0.5'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23smallGrid)'/%3E%3C/svg%3E");
 
   .login-card {
@@ -155,7 +155,7 @@ const handleSubmit = async () => {
       text-align: center;
       margin: 0;
       font-size: 24px;
-      color: #303133;
+      color: var(--el-text-color-primary);
     }
 
     .login-btn {

@@ -43,9 +43,9 @@ watch(() => route.path, (p) => {
 <style scoped>
 .notes-root { height:100%; display:flex; flex-direction:column; overflow:hidden; }
 .notes-nav { display:flex; gap:4px; padding:0 0 20px; flex-shrink:0; }
-.nav-item { display:flex; align-items:center; gap:6px; padding:8px 18px; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; color:#6b7280; background:transparent; transition:all .2s; border:1px solid transparent; }
-.nav-item:hover { background:#f5f3ff; color:#7c3aed; }
-.nav-item.active { background:#f5f3ff; color:#7c3aed; border-color:#d8b4fe; box-shadow:0 1px 3px rgba(124,58,237,.1); }
+.nav-item { display:flex; align-items:center; gap:6px; padding:8px 18px; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; color:var(--el-text-color-secondary); background:transparent; transition:all .2s; border:1px solid transparent; }
+.nav-item:hover { background:var(--el-color-primary-light-9); color:var(--el-color-primary); }
+.nav-item.active { background:var(--el-color-primary-light-9); color:var(--el-color-primary); border-color:var(--el-color-primary-light-5); box-shadow:0 1px 3px var(--el-color-primary-light-8); }
 .nav-emoji { font-size:16px; }
 .notes-body { flex:1; overflow:hidden; }
 </style>

@@ -1545,6 +1545,38 @@ function clearVideoPolling() {
   &:last-child {
     border-bottom: none;
   }
+  // 用户消息：右对齐（微信风格）
+  &.user {
+    flex-direction: row-reverse;
+    .message-role {
+      text-align: right;
+    }
+    .message-body {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    .message-content {
+      background: var(--el-color-primary);
+      padding: 8px 16px;
+      border-radius: 8px;
+      display: inline-block;
+      max-width: 100%;
+      color: #ffffff;
+    }
+    .message-actions {
+      justify-content: flex-end;
+    }
+  }
+  // AI 消息：保持左对齐
+  &.assistant {
+    flex-direction: row;
+    .message-body {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
   .message-avatar {
     flex-shrink: 0;
     padding-top: 2px;
@@ -1568,13 +1600,6 @@ function clearVideoPolling() {
     font-size: 14px;
     line-height: 1.7;
     color: var(--el-color-primary);
-  }
-  &.user .message-content {
-    background: var(--el-color-primary-light-9);
-    padding: 8px 16px;
-    border-radius: 8px;
-    display: inline-block;
-    max-width: 100%;
   }
   .user-text {
     white-space: pre-wrap;

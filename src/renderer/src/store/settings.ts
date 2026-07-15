@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+export type ReaderTheme = 'light' | 'sepia' | 'dark'
+
 export const useSettingsStore = defineStore(
   'settings',
   () => {
@@ -8,6 +10,7 @@ export const useSettingsStore = defineStore(
     const sysLogo = ref('') // 系统Logo base64
     const theme = ref('#1677ff') // 默认高级极客蓝
     const darkMode = ref(false)
+    const readerTheme = ref<ReaderTheme>('light')
     const lockTime = ref('30')
     const notify = ref(true)
     const outputDir = ref('')
@@ -30,6 +33,7 @@ export const useSettingsStore = defineStore(
       sysLogo.value = ''
       theme.value = '#1677ff'
       darkMode.value = false
+      readerTheme.value = 'light'
       lockTime.value = '30'
       notify.value = true
       outputDir.value = ''
@@ -51,6 +55,7 @@ export const useSettingsStore = defineStore(
       sysLogo,
       theme,
       darkMode,
+      readerTheme,
       lockTime,
       notify,
       outputDir,

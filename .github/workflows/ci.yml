@@ -70,7 +70,7 @@ jobs:
         with:
           name: ${{ runner.os }}-dist
           path: |
-            dist/**/*.exe
+            dist/**/mytool-setup-*.exe
             dist/**/*.dmg
             dist/**/*.AppImage
             dist/**/*.deb
@@ -93,6 +93,11 @@ jobs:
         run: |
           find artifacts -name 'builder-debug.yml' -delete
           find artifacts -name 'app-update.yml' -delete
+          find artifacts -name 'elevate.exe' -delete
+          find artifacts -name 'ffmpeg.exe' -delete
+          find artifacts -name 'ffprobe.exe' -delete
+          find artifacts -name 'mytool.exe' -delete
+          find artifacts -name 'mytool.exe.blockmap' -delete
 
       - uses: softprops/action-gh-release@v2
         with:

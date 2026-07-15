@@ -70,8 +70,16 @@ declare global {
           message?: string
         }>
         installUpdate: () => Promise<{ success: boolean; message?: string }>
+        getDownloadState: () => Promise<{
+          status: 'idle' | 'checking' | 'downloading' | 'downloaded' | 'error'
+          progress?: { percent: number; bytesPerSecond: number; transferred: number; total: number }
+          version?: string
+          error?: string
+        }>
         onUpdateAvailable: (callback: (version?: string) => void) => void
         onUpdateDownloaded: (callback: () => void) => void
+        onDownloadProgress: (callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void) => void
+        onUpdateError: (callback: (error: string) => void) => void
       }
     }
   }

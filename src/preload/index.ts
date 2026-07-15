@@ -73,13 +73,18 @@ const api = {
     openExternal: (url: string) => ipcRenderer.invoke('about:openExternal', url),
     checkForUpdates: () => ipcRenderer.invoke('about:checkForUpdates'),
     installUpdate: () => ipcRenderer.invoke('about:installUpdate'),
+    getDownloadState: () => ipcRenderer.invoke('about:getDownloadState'),
     onUpdateAvailable: (callback: (version?: string) => void) => {
-      ipcRenderer.removeAllListeners('about:update-available')
       ipcRenderer.on('about:update-available', (_event, version) => callback(version))
     },
     onUpdateDownloaded: (callback: () => void) => {
-      ipcRenderer.removeAllListeners('about:update-downloaded')
       ipcRenderer.on('about:update-downloaded', () => callback())
+    },
+    onDownloadProgress: (callback: (progress: any) => void) => {
+      ipcRenderer.on('about:download-progress', (_event, progress) => callback(progress))
+    },
+    onUpdateError: (callback: (error: string) => void) => {
+      ipcRenderer.on('about:update-error', (_event, error) => callback(error))
     }
   }
 }

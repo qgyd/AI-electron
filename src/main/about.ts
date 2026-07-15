@@ -14,9 +14,17 @@ export function setupAboutIPC() {
   let updateDownloaded = false
   let hasNotifiedUpdateAvailable = false
 
-  const sendToAllWindows = (channel: string, payload?: string) => {
+  // 下载状态（供 About 页面查询当前进度）
+  let downloadState: {
+    status: 'idle' | 'checking' | 'downloading' | 'downloaded' | 'error'
+    progress?: { percent: number; bytesPerSecond: number; transferred: number; total: number }
+    version?: string
+    error?: string
+  } = { status: 'idle' }
+
+  const sendToAllWindows = (channel: string, ...args: any[]) => {
     BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send(channel, payload)
+      win.webContents.send(channel, ...args)
     })
   }
 
@@ -32,6 +40,7 @@ export function setupAboutIPC() {
 
       if (hasUpdate && notifyRenderer && !hasNotifiedUpdateAvailable) {
         hasNotifiedUpdateAvailable = true
+        downloadState = { status: 'downloading', version }
         sendToAllWindows('about:update-available', version)
       }
 
@@ -51,10 +60,33 @@ export function setupAboutIPC() {
     }
   }
 
+  // 监听下载进度，广播到渲染进程
+  autoUpdater.on('download-progress', (progress) => {
+    downloadState = {
+      ...downloadState,
+      status: 'downloading',
+      progress: {
+        percent: progress.percent,
+        bytesPerSecond: progress.bytesPerSecond,
+        transferred: progress.transferred,
+        total: progress.total
+      }
+    }
+    sendToAllWindows('about:download-progress', downloadState.progress)
+  })
+
+  // 监听更新错误
+  autoUpdater.on('error', (error) => {
+    log.error('Auto updater error:', error)
+    downloadState = { status: 'error', error: error.message }
+    sendToAllWindows('about:update-error', error.message)
+  })
+
   // 监听下载完成事件，通知渲染进程
   autoUpdater.on('update-downloaded', () => {
     log.info('新版本下载完成，等待用户决定或关闭应用时安装...')
     updateDownloaded = true
+    downloadState = { ...downloadState, status: 'downloaded' }
 
     // 通知所有窗口更新已下载完毕
     sendToAllWindows('about:update-downloaded')
@@ -109,5 +141,9 @@ export function setupAboutIPC() {
       return { success: true }
     }
     return { success: false, message: '更新尚未下载完成' }
+  })
+
+  ipcHandleWithLog('about:getDownloadState', async () => {
+    return downloadState
   })
 }

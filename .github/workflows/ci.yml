@@ -89,6 +89,11 @@ jobs:
         with:
           path: artifacts
 
+      - name: Remove conflicting duplicate files
+        run: |
+          find artifacts -name 'builder-debug.yml' -delete
+          find artifacts -name 'app-update.yml' -delete
+
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.check_version.outputs.version }}
